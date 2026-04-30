@@ -1,0 +1,223 @@
+.container {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background: var(--color-bg-light);
+  position: relative;
+}
+
+[data-theme="dark"] .container {
+  background: var(--color-bg-dark);
+}
+
+.zoomContainer {
+  transform-origin: top left;
+  will-change: transform;
+}
+
+.dark {
+  --ht-theme-main: #1e1e1e;
+  --ht-theme-main-foreground: #e0e0e0;
+  --ht-theme-primary: #1976d2;
+  --ht-theme-primary-lighten-1: #1565c0;
+  --ht-theme-primary-darken-1: #0d47a1;
+}
+
+/* PC端悬停单元格指针样式 */
+:global(.htCore td) {
+  cursor: cell;
+}
+
+:global(.htCore td:hover) {
+  cursor: cell;
+}
+
+/* 修复表列头和表行头标识栏置顶问题 */
+/* 移动端侧边栏 z-index 为 100，表格克隆元素必须低于它 */
+:global(.handsontable .ht_clone_top) {
+  z-index: 5 !important;
+}
+
+:global(.handsontable .ht_clone_left) {
+  z-index: 5 !important;
+}
+
+:global(.handsontable .ht_clone_corner) {
+  z-index: 6 !important;
+}
+
+/* 确保侧边栏打开时表格克隆元素不会遮挡 */
+@media (max-width: 768px) {
+  /* 降低所有 Handsontable 克隆容器的层级 */
+  :global(.handsontable .ht_clone_top),
+  :global(.handsontable .ht_clone_left),
+  :global(.handsontable .ht_clone_corner),
+  :global(.handsontable .ht_clone_debug),
+  :global(.handsontable .ht_clone_bottom),
+  :global(.handsontable .ht_clone_inline_start),
+  :global(.handsontable .ht_clone_top_inline_start_corner),
+  :global(.handsontable .ht_clone_top_left_corner),
+  :global(.handsontable .ht_clone_bottom_inline_start_corner),
+  :global(.handsontable .ht_clone_bottom_left_corner) {
+    z-index: 1 !important;
+  }
+  
+  /* 修复角落单元格 (cornerHeader) 遮挡侧边栏问题 */
+  :global(.handsontable .ht_clone_corner .relative),
+  :global(.handsontable .ht_clone_top_left_corner .relative),
+  :global(.handsontable .ht_clone_top_inline_start_corner .relative) {
+    z-index: 1 !important;
+  }
+  
+  :global(.handsontable .cornerHeader) {
+    z-index: 1 !important;
+  }
+  
+  /* 修复角落 th 元素本身 */
+  :global(.handsontable .ht_clone_corner th),
+  :global(.handsontable .ht_clone_top_left_corner th),
+  :global(.handsontable .ht_clone_top_inline_start_corner th) {
+    z-index: 1 !important;
+  }
+}
+
+/* 深色模式适配 - Handsontable */
+[data-theme="dark"] :global(.handsontable) {
+  color-scheme: dark;
+}
+
+[data-theme="dark"] :global(.handsontable .htCore) {
+  background-color: #1e1e1e;
+}
+
+[data-theme="dark"] :global(.handsontable .htCore td) {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+[data-theme="dark"] :global(.handsontable .htCore th) {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+[data-theme="dark"] :global(.handsontable .ht_clone_top th),
+[data-theme="dark"] :global(.handsontable .ht_clone_left th) {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] :global(.handsontable .wtBorder) {
+  background-color: #4a9eff !important;
+}
+
+[data-theme="dark"] :global(.handsontable .ht__highlight) {
+  background-color: rgba(74, 158, 255, 0.2) !important;
+}
+
+[data-theme="dark"] :global(.handsontable .area) {
+  background-color: rgba(74, 158, 255, 0.15) !important;
+  border-color: #4a9eff !important;
+}
+
+[data-theme="dark"] :global(.handsontable .current) {
+  background-color: rgba(74, 158, 255, 0.3) !important;
+}
+
+[data-theme="dark"] :global(.handsontable .htCommentCell) {
+  background-color: #2d2d2d;
+}
+
+[data-theme="dark"] :global(.handsontable .htCommentTextArea) {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+[data-theme="dark"] :global(.handsontable .htContextMenu) {
+  background-color: #2d2d2d;
+  border-color: #444;
+}
+
+[data-theme="dark"] :global(.handsontable .htContextMenu td) {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+[data-theme="dark"] :global(.handsontable .htContextMenu td:hover) {
+  background-color: #3d3d3d;
+}
+
+[data-theme="dark"] :global(.handsontable .htFiltersMenuHolder) {
+  background-color: #2d2d2d;
+  border-color: #444;
+}
+
+[data-theme="dark"] :global(.handsontable .htFiltersMenuActionBar) {
+  background-color: #2d2d2d;
+  border-color: #444;
+}
+
+[data-theme="dark"] :global(.handsontable .htFiltersMenuCondition) {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] :global(.handsontable .htFiltersMenuValue) {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+[data-theme="dark"] :global(.handsontable .htCheckboxRendererInput) {
+  accent-color: #4a9eff;
+}
+
+[data-theme="dark"] :global(.handsontable .htAutocompleteArrow) {
+  color: #888;
+}
+
+[data-theme="dark"] :global(.handsontable .htAutocompleteArrow:hover) {
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] :global(.handsontable .htGhostTable th),
+[data-theme="dark"] :global(.handsontable .htGhostTable td) {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] :global(.handsontable .htEditor) {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] :global(.handsontable .htEditor input) {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-color: #4a9eff;
+}
+
+[data-theme="dark"] :global(.handsontable .handsontableInput) {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-color: #4a9eff;
+}
+
+@media (max-width: 768px) {
+  :global(.htCore td),
+  :global(.htCore th) {
+    font-size: 14px !important;
+    padding: 4px 8px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  :global(.htCore td),
+  :global(.htCore th) {
+    font-size: 12px !important;
+    padding: 2px 4px !important;
+  }
+}

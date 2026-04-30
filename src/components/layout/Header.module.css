@@ -1,0 +1,267 @@
+.header {
+  display: flex;
+  align-items: center;
+  height: var(--header-height);
+  padding: 0 var(--spacing-md);
+  background: var(--color-card-light);
+  border-bottom: 1px solid var(--color-border-light);
+  -webkit-app-region: drag;
+  user-select: none;
+  gap: var(--spacing-md);
+}
+
+[data-theme="dark"] .header {
+  background: var(--color-card-dark);
+  border-bottom-color: var(--color-border-dark);
+}
+
+/* 左侧区域：Logo 和菜单按钮 */
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+}
+
+.menuBtn {
+  display: none;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.menuBtn:active {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .menuBtn:active {
+  background: var(--color-border-dark);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.logoClickable {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.logoClickable:hover {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .logoClickable:hover {
+  background: var(--color-border-dark);
+}
+
+.logoIcon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  color: var(--color-primary);
+}
+
+.logoTextWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.logoText {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-primary);
+  line-height: 1.2;
+}
+
+.versionBadge {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+/* 移动端隐藏版本号 */
+@media (max-width: 768px) {
+  .versionBadge {
+    display: none;
+  }
+}
+
+.fileInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.fileName {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dirtyIndicator {
+  color: var(--color-warning);
+  font-size: 12px;
+}
+
+/* 标签页栏 - 占据剩余空间 */
+.tabBar {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  -webkit-app-region: no-drag;
+}
+
+.tabList {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tabList::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  height: calc(100% - 8px);
+  padding: 0 var(--spacing-md);
+  margin: 4px 0;
+  background: var(--color-bg-light);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  max-width: 180px;
+  border: 1px solid transparent;
+}
+
+[data-theme="dark"] .tab {
+  background: var(--color-bg-dark);
+}
+
+.tab:hover {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .tab:hover {
+  background: var(--color-border-dark);
+}
+
+.tab.active {
+  background: var(--color-card-light);
+  border-color: var(--color-primary);
+}
+
+[data-theme="dark"] .tab.active {
+  background: var(--color-card-dark);
+}
+
+.tab.dragging {
+  opacity: 0.5;
+}
+
+.tabTitle {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+}
+
+.tab.active .tabTitle {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  opacity: 0;
+  transition: all var(--transition-fast);
+}
+
+.tab:hover .closeBtn {
+  opacity: 1;
+}
+
+.closeBtn:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 var(--spacing-sm);
+    gap: var(--spacing-sm);
+  }
+
+  .menuBtn {
+    display: flex;
+  }
+
+  .logoText {
+    font-size: 16px;
+  }
+
+  .fileName {
+    max-width: 120px;
+  }
+
+  .tab {
+    padding: 0 var(--spacing-sm);
+    max-width: 140px;
+  }
+
+  .tabTitle {
+    max-width: 100px;
+    font-size: 12px;
+  }
+
+  .closeBtn {
+    opacity: 1;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logoText {
+    display: none;
+  }
+
+  .fileInfo {
+    display: none;
+  }
+}

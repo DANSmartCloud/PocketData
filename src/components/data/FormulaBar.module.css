@@ -1,0 +1,67 @@
+.formulaBar {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 var(--spacing-sm);
+  background: var(--color-card-light);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+[data-theme="dark"] .formulaBar {
+  background: var(--color-card-dark);
+  border-bottom-color: var(--color-border-dark);
+}
+
+.cellAddress {
+  min-width: 80px;
+  padding: 0 var(--spacing-sm);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-align: center;
+}
+
+[data-theme="dark"] .cellAddress {
+  color: var(--color-text-dark);
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border-light);
+  margin: 0 var(--spacing-sm);
+}
+
+[data-theme="dark"] .divider {
+  background: var(--color-border-dark);
+}
+
+.input {
+  flex: 1;
+  height: 28px;
+  padding: 0 var(--spacing-sm);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--color-bg-light);
+  color: var(--color-text-primary);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .input {
+  border-color: var(--color-border-dark);
+  background: var(--color-bg-dark);
+  color: var(--color-text-dark);
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.input::placeholder {
+  color: var(--color-text-secondary);
+}

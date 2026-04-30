@@ -1,0 +1,219 @@
+.statusBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--statusbar-height);
+  padding: 0 var(--spacing-md);
+  background: var(--color-card-light);
+  border-top: 1px solid var(--color-border-light);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  overflow-x: hidden;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .statusBar {
+  background: var(--color-card-dark);
+  border-top-color: var(--color-border-dark);
+}
+
+.left, .right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  white-space: nowrap;
+  padding: 2px 4px;
+}
+
+.itemText {
+  display: inline;
+}
+
+/* 文件标识样式 */
+.fileIndicator {
+  max-width: 150px;
+}
+
+.fileIndicator .itemText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 桌面端专用 */
+.desktopOnly {
+  display: flex;
+}
+
+/* 缩放控制样式 - 取消灰色底色 */
+.zoomControls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.zoomBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.zoomBtn:hover:not(:disabled) {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+.zoomBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+[data-theme="dark"] .zoomBtn:hover:not(:disabled) {
+  background: var(--color-border-dark);
+}
+
+.zoomScale {
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 36px;
+  text-align: center;
+}
+
+.modeTag {
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-size: 11px;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modeTag:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.modeStata {
+  background: #2563eb;
+}
+
+.modeExcel {
+  background: #10b981;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .statusBar {
+    padding: 0 var(--spacing-sm);
+    font-size: 13px;
+    height: auto;
+    min-height: var(--statusbar-height);
+    flex-wrap: nowrap;
+    gap: var(--spacing-sm);
+    padding-top: var(--spacing-xs);
+    padding-bottom: var(--spacing-xs);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .statusBar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .left, .right {
+    gap: var(--spacing-sm);
+  }
+
+  .item {
+    padding: 2px 4px;
+  }
+
+  .itemText {
+    max-width: none;
+  }
+
+  /* 移动端隐藏桌面端专用元素 */
+  .desktopOnly {
+    display: none;
+  }
+
+  /* 文件标识在移动端缩短 */
+  .fileIndicator {
+    max-width: 100px;
+  }
+
+  .zoomControls {
+    gap: 2px;
+  }
+
+  .zoomBtn {
+    height: 28px;
+    padding: 0 10px;
+  }
+
+  .zoomBtn:hover:not(:disabled) {
+    background: var(--color-border-light);
+  }
+
+  [data-theme="dark"] .zoomBtn:hover:not(:disabled) {
+    background: var(--color-border-dark);
+  }
+
+  .zoomScale {
+    font-size: 13px;
+    min-width: 40px;
+  }
+
+  /* 确保底栏在移动端可见 */
+  :global(.main-content) {
+    padding-bottom: calc(var(--statusbar-height) + 8px);
+  }
+}
+
+/* 超小屏幕适配 */
+@media (max-width: 480px) {
+  .statusBar {
+    font-size: 12px;
+  }
+
+  .item {
+    padding: 2px 4px;
+  }
+
+  .fileIndicator {
+    max-width: 80px;
+  }
+
+  .zoomBtn {
+    height: 26px;
+    padding: 0 8px;
+  }
+
+  .zoomScale {
+    font-size: 12px;
+    min-width: 36px;
+  }
+}

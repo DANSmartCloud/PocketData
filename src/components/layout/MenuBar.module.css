@@ -1,0 +1,152 @@
+.menuBar {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  background: var(--color-card-light);
+  border-bottom: 1px solid var(--color-border-light);
+  padding: 0 var(--spacing-sm);
+  gap: 2px;
+  user-select: none;
+}
+
+.versionInfo {
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+}
+
+[data-theme="dark"] .menuBar {
+  background: var(--color-card-dark);
+  border-bottom-color: var(--color-border-dark);
+}
+
+.menuContainer {
+  position: relative;
+}
+
+.menuButton {
+  padding: 4px 12px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.menuButton:hover,
+.menuButton.active {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .menuButton:hover,
+[data-theme="dark"] .menuButton.active {
+  background: var(--color-border-dark);
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-elevated);
+  z-index: 1000;
+  padding: 4px;
+  margin-top: 2px;
+  transition: all 100ms ease-out;
+}
+
+.dropdownEnter {
+  animation: fadeIn 100ms ease-out;
+}
+
+.dropdownExit {
+  animation: fadeOut 100ms ease-in forwards;
+}
+
+[data-theme="dark"] .dropdown {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.menuItem:hover:not(.disabled) {
+  background: var(--color-primary);
+  color: white;
+}
+
+.menuItem.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.itemLabel {
+  flex: 1;
+}
+
+.shortcut {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-left: 16px;
+  font-family: var(--font-mono);
+}
+
+.menuItem:hover:not(.disabled) .shortcut {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.separator {
+  height: 1px;
+  background: var(--color-border-light);
+  margin: 4px 8px;
+}
+
+[data-theme="dark"] .separator {
+  background: var(--color-border-dark);
+}
+
+/* 移动端隐藏菜单栏 */
+@media (max-width: 768px) {
+  .menuBar {
+    display: none;
+  }
+}

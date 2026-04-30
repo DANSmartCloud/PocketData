@@ -1,0 +1,962 @@
+.toolbar {
+  display: flex;
+  align-items: stretch;
+  height: var(--toolbar-height);
+  background: var(--color-card-light);
+  border-bottom: 1px solid var(--color-border-light);
+  position: relative;
+}
+
+[data-theme="dark"] .toolbar {
+  background: var(--color-card-dark);
+  border-bottom-color: var(--color-border-dark);
+}
+
+/* 菜单栏样式 */
+.menuBar {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--spacing-sm);
+  gap: 2px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.menuContainer {
+  position: relative;
+}
+
+.menuButton {
+  padding: 4px 10px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.menuButton:hover,
+.menuButton.active {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .menuButton:hover,
+[data-theme="dark"] .menuButton.active {
+  background: var(--color-border-dark);
+}
+
+.dropdown {
+  position: fixed;
+  min-width: 180px;
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-elevated);
+  z-index: 9999;
+  padding: 4px;
+  margin-top: 2px;
+  animation: fadeIn 100ms ease-out;
+}
+
+[data-theme="dark"] .dropdown {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.menuItem:hover:not(.disabled) {
+  background: var(--color-primary);
+  color: white;
+}
+
+.menuItem.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.itemLabel {
+  flex: 1;
+}
+
+.shortcut {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-left: 16px;
+  font-family: var(--font-mono);
+}
+
+.menuItem:hover:not(.disabled) .shortcut {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.separator {
+  height: 1px;
+  background: var(--color-border-light);
+  margin: 4px 8px;
+}
+
+[data-theme="dark"] .separator {
+  background: var(--color-border-dark);
+}
+
+.toolbarScroll {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  padding: 0 var(--spacing-md);
+  gap: var(--spacing-sm);
+  overflow: visible;
+  position: relative;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--color-border-light);
+  margin: 0 var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .divider {
+  background: var(--color-border-dark);
+}
+
+.spacer {
+  flex: 1;
+  min-width: var(--spacing-md);
+}
+
+.iconBtn {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.iconBtn:hover {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+.iconBtn:active {
+  transform: scale(0.95);
+}
+
+[data-theme="dark"] .iconBtn:hover {
+  background: var(--color-border-dark);
+}
+
+.iconBtn.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.iconBtn.active:hover {
+  background: var(--color-primary-dark);
+}
+
+.iconBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.zoomScale {
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
+}
+
+.highlightWrapper,
+.exportWrapper {
+  position: relative;
+}
+
+.colorPicker {
+  position: fixed;
+  padding: 8px;
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-medium);
+  z-index: 1000;
+  min-width: 160px;
+  transition: all 150ms ease-out;
+}
+
+.colorPickerEnter {
+  animation: scaleIn 150ms ease-out;
+}
+
+.colorPickerExit {
+  animation: scaleOut 150ms ease-in forwards;
+}
+
+[data-theme="dark"] .colorPicker {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.colorPickerTitle {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.colorGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.colorBtn {
+  width: 40px;
+  height: 28px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.colorBtn:hover {
+  border-color: var(--color-primary);
+  transform: scale(1.1);
+}
+
+.colorBtnSelected {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.colorPickerDivider {
+  height: 1px;
+  background: var(--color-border-light);
+  margin: 8px 0;
+}
+
+[data-theme="dark"] .colorPickerDivider {
+  background: var(--color-border-dark);
+}
+
+.colorPickerAction {
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--color-primary);
+  background: transparent;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.colorPickerAction:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+.exportMenu {
+  position: fixed;
+  padding: 4px;
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-medium);
+  z-index: 1000;
+  min-width: 140px;
+  transition: all 100ms ease-out;
+}
+
+.exportMenuEnter {
+  animation: fadeIn 100ms ease-out;
+}
+
+.exportMenuExit {
+  animation: fadeOut 100ms ease-in forwards;
+}
+
+[data-theme="dark"] .exportMenu {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+}
+
+.exportMenuItem {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+[data-theme="dark"] .exportMenuItem {
+  color: var(--color-text-dark);
+}
+
+.exportMenuItem:hover {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .exportMenuItem:hover {
+  background: var(--color-border-dark);
+}
+
+/* 移动端导出弹窗 */
+.mobileExportOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transition: all 100ms ease-out;
+}
+
+.mobileExportOverlayEnter {
+  animation: fadeIn 100ms ease-out;
+}
+
+.mobileExportOverlayExit {
+  animation: fadeOut 100ms ease-in forwards;
+}
+
+.mobileExportDialog {
+  background: var(--color-card-light);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 320px;
+  box-shadow: var(--shadow-elevated);
+  overflow: hidden;
+  transition: all 100ms ease-out;
+}
+
+.mobileExportOverlayEnter .mobileExportDialog {
+  animation: slideUp 100ms ease-out;
+}
+
+.mobileExportOverlayExit .mobileExportDialog {
+  animation: slideDown 100ms ease-in forwards;
+}
+
+[data-theme="dark"] .mobileExportDialog {
+  background: var(--color-card-dark);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+.mobileExportHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+[data-theme="dark"] .mobileExportHeader {
+  border-bottom-color: var(--color-border-dark);
+}
+
+.mobileExportHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.mobileExportClose {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.mobileExportClose:hover {
+  background: var(--color-border-light);
+}
+
+.mobileExportGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 20px;
+}
+
+.mobileExportCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 8px;
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .mobileExportCard {
+  background: var(--color-bg-dark);
+  border-color: var(--color-border-dark);
+}
+
+.mobileExportCard:hover {
+  background: var(--color-border-light);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.mobileExportIcon {
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobileExportCard span {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.mobileExportCard small {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  height: 36px;
+  padding: 0 var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+[data-theme="dark"] .btn:hover:not(:disabled) {
+  background: var(--color-border-dark);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btnText {
+  white-space: nowrap;
+}
+
+.modeLabel {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  padding: 0 var(--spacing-xs);
+  white-space: nowrap;
+}
+
+.searchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+  z-index: 101;
+  transition: all var(--transition-fast);
+}
+
+.searchWrapper:has(.searchInput:focus) .searchIcon {
+  margin-left: -120px;
+}
+
+.searchInput {
+  height: 36px;
+  width: 160px;
+  padding: 0 var(--spacing-md) 0 40px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  background: var(--color-bg-light);
+  color: var(--color-text-primary);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+[data-theme="dark"] .searchInput {
+  border-color: var(--color-border-dark);
+  background: var(--color-bg-dark);
+  color: var(--color-text-dark);
+}
+
+.searchInput:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 280px;
+  z-index: 100;
+  background: var(--color-card-light);
+  margin-left: -120px;
+}
+
+[data-theme="dark"] .searchInput:focus {
+  background: var(--color-card-dark);
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.searchInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .toolbar {
+    height: var(--toolbar-height);
+    padding: 0 8px;
+  }
+
+  .menuBar {
+    display: none;
+  }
+
+  .toolbarScroll {
+    display: none;
+  }
+
+  .menuDivider {
+    display: none;
+  }
+
+  /* 移动端工具栏 - 三栏布局 */
+  .mobileToolbar {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    gap: 4px;
+  }
+
+  .mobileLeft,
+  .mobileRight {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .mobileCenter {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    overflow: hidden;
+  }
+
+  /* 更多按钮样式 - 与iconBtn一致 */
+  .moreBtn {
+    /* 继承iconBtn的所有样式 */
+  }
+
+  /* 更多按钮激活状态 */
+  .moreBtn.active {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  /* 更多工具展开栏 - 工具栏样式而非弹窗 */
+  .mobileMoreBar {
+    position: absolute;
+    top: var(--toolbar-height);
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--color-card-light);
+    border-bottom: 1px solid var(--color-border-light);
+    box-shadow: var(--shadow-medium);
+    z-index: 50;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    transition: all 200ms ease-out;
+  }
+
+  .mobileMoreBarEnter {
+    animation: slideDownIn 200ms ease-out;
+  }
+
+  .mobileMoreBarExit {
+    animation: slideDownOut 200ms ease-in forwards;
+  }
+
+  @keyframes slideDownIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideDownOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+
+  [data-theme="dark"] .mobileMoreBar {
+    background: var(--color-card-dark);
+    border-bottom-color: var(--color-border-dark);
+  }
+
+  .mobileMoreBar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 更多工具栏中的按钮样式 - 与主工具栏一致 */
+  .mobileMoreItem {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+  }
+
+  .mobileMoreItem:hover:not(:disabled) {
+    background: var(--color-border-light);
+    color: var(--color-text-primary);
+  }
+
+  .mobileMoreItem:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* 更多工具栏中的按钮激活状态 */
+  .mobileMoreItem.active {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  /* 搜索按钮样式 */
+  .searchBtn {
+    /* 继承iconBtn的所有样式 */
+  }
+
+  .searchBtn.active {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  /* 移动端搜索栏展开 */
+  .mobileSearchBar {
+    position: absolute;
+    top: var(--toolbar-height);
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--color-card-light);
+    border-bottom: 1px solid var(--color-border-light);
+    box-shadow: var(--shadow-medium);
+    z-index: 50;
+    transition: all 200ms ease-out;
+  }
+
+  .mobileSearchBarEnter {
+    animation: slideDownIn 200ms ease-out;
+  }
+
+  .mobileSearchBarExit {
+    animation: slideDownOut 200ms ease-in forwards;
+  }
+
+  [data-theme="dark"] .mobileSearchBar {
+    background: var(--color-card-dark);
+    border-bottom-color: var(--color-border-dark);
+  }
+
+  .mobileSearchWrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .mobileSearchIcon {
+    position: absolute;
+    left: 12px;
+    color: var(--color-text-secondary);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .mobileSearchInput {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px 0 40px;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    background: var(--color-bg-light);
+    color: var(--color-text-primary);
+    outline: none;
+  }
+
+  [data-theme="dark"] .mobileSearchInput {
+    border-color: var(--color-border-dark);
+    background: var(--color-bg-dark);
+    color: var(--color-text-dark);
+  }
+
+  .mobileSearchInput:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  .mobileSearchClose {
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+  }
+
+  .mobileSearchClose:hover {
+    background: var(--color-border-light);
+    color: var(--color-text-primary);
+  }
+
+  [data-theme="dark"] .mobileSearchClose:hover {
+    background: var(--color-border-dark);
+  }
+
+  .btnText {
+    display: none;
+  }
+
+  .btn {
+    padding: 0 var(--spacing-sm);
+    min-width: 40px;
+    height: 40px;
+    justify-content: center;
+  }
+
+  .iconBtn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  .modeLabel {
+    display: none;
+  }
+
+  .divider {
+    margin: 0 4px;
+  }
+
+  /* 移动端颜色选择器优化 */
+  .colorPicker {
+    position: fixed;
+    left: 50%;
+    top: auto;
+    bottom: 20px;
+    transform: translateX(-50%);
+    max-width: calc(100vw - 32px);
+    width: 280px;
+    padding: 16px;
+    border-radius: var(--radius-xl);
+  }
+
+  .colorPickerTitle {
+    text-align: center;
+    padding: 0 4px;
+    font-size: 15px;
+  }
+
+  .colorGrid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+
+  .colorBtn {
+    width: 100%;
+    height: 40px;
+    border-radius: var(--radius-md);
+  }
+
+  .colorPickerAction {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    margin-top: 8px;
+  }
+
+  .colorPickerDivider {
+    margin: 12px 0;
+  }
+}
+
+/* 移动端显示弹窗，桌面端隐藏 */
+@media (max-width: 768px) {
+  .mobileExportOverlay {
+    display: flex;
+  }
+  
+  .exportMenu {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobileExportOverlay {
+    display: none !important;
+  }
+
+  .mobileToolbar {
+    display: none !important;
+  }
+
+  .mobileMoreBar {
+    display: none !important;
+  }
+
+  .toolbarScroll {
+    display: flex !important;
+  }
+}

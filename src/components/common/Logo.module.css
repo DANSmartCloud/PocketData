@@ -1,0 +1,8 @@
+.logo {
+  display: block;
+  flex-shrink: 0;
+}
+
+.stroke {
+  stroke: currentColor;
+}

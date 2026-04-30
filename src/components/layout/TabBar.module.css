@@ -1,0 +1,124 @@
+.tabBar {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  background: var(--color-bg-light);
+  border-bottom: 1px solid var(--color-border-light);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .tabBar {
+  background: var(--color-bg-dark);
+  border-bottom-color: var(--color-border-dark);
+}
+
+.tabList {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tabList::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  height: 100%;
+  padding: 0 var(--spacing-md);
+  background: var(--color-card-light);
+  border-right: 1px solid var(--color-border-light);
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition-fast);
+  flex-shrink: 0;
+  max-width: 200px;
+}
+
+[data-theme="dark"] .tab {
+  background: var(--color-card-dark);
+  border-right-color: var(--color-border-dark);
+}
+
+.tab:hover {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .tab:hover {
+  background: var(--color-border-dark);
+}
+
+.tab.active {
+  background: var(--color-card-light);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+[data-theme="dark"] .tab.active {
+  background: var(--color-card-dark);
+  border-bottom-color: var(--color-primary);
+}
+
+.tab.dragging {
+  opacity: 0.5;
+}
+
+.tabTitle {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 150px;
+}
+
+.tab.active .tabTitle {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  opacity: 0;
+  transition: all var(--transition-fast);
+}
+
+.tab:hover .closeBtn {
+  opacity: 1;
+}
+
+.closeBtn:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .tab {
+    padding: 0 var(--spacing-sm);
+    max-width: 160px;
+  }
+
+  .tabTitle {
+    max-width: 120px;
+    font-size: 12px;
+  }
+
+  .closeBtn {
+    opacity: 1;
+    width: 24px;
+    height: 24px;
+  }
+}
