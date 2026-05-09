@@ -122,3 +122,236 @@
     height: 24px;
   }
 }
+
+.newWindowHint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 1000;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.dragPreview {
+  position: fixed;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-card-light);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--color-text-primary);
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0.9;
+  transform: rotate(-2deg);
+}
+
+[data-theme="dark"] .dragPreview {
+  background: var(--color-card-dark);
+  color: var(--color-text-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.dragPreviewWindow {
+  position: fixed;
+  min-width: 240px;
+  background: var(--color-card-light);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  opacity: 0.95;
+  animation: fadeIn 0.2s ease-out;
+}
+
+[data-theme="dark"] .dragPreviewWindow {
+  background: var(--color-card-dark);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.dragPreviewHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dragPreviewTitle {
+  flex: 1;
+}
+
+.dragPreviewContent {
+  padding: var(--spacing-md);
+  font-size: 14px;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+[data-theme="dark"] .dragPreviewContent {
+  border-bottom-color: var(--color-border-dark);
+}
+
+.dragPreviewTabs {
+  padding: var(--spacing-sm);
+  display: flex;
+  gap: 2px;
+  background: var(--color-bg-light);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+[data-theme="dark"] .dragPreviewTabs {
+  background: var(--color-bg-dark);
+  border-bottom-color: var(--color-border-dark);
+}
+
+.previewTab {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+[data-theme="dark"] .previewTab {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-secondary);
+}
+
+.previewTabActive {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  opacity: 1;
+}
+
+.dragPreviewHint {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0.95;
+    transform: scale(1);
+  }
+}
+
+/* 幽灵标签页样式 - 拖拽时原窗口保留的占位 */
+.tab.ghost {
+  opacity: 0.4;
+  background: var(--color-bg-light);
+  border: 2px dashed var(--color-primary);
+  animation: ghostPulse 1s ease-in-out infinite;
+}
+
+[data-theme="dark"] .tab.ghost {
+  background: var(--color-bg-dark);
+}
+
+@keyframes ghostPulse {
+  0%, 100% {
+    border-color: var(--color-primary);
+    opacity: 0.4;
+  }
+  50% {
+    border-color: var(--color-primary-light);
+    opacity: 0.6;
+  }
+}
+
+/* 拖拽指示器 */
+.dragIndicator {
+  pointer-events: none;
+}
+
+/* 浮动拖拽预览 */
+.dragPreviewFloating {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-card-light);
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  opacity: 0.9;
+  width: 100%;
+  height: 100%;
+  transition: box-shadow 0.2s ease;
+}
+
+[data-theme="dark"] .dragPreviewFloating {
+  background: var(--color-card-dark);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* 拖拽指示器 */
+.dragIndicator {
+  pointer-events: none;
+}
+
+/* 拖拽时的标签页样式 */
+.tab.dragging {
+  opacity: 0.3;
+  background: transparent;
+}
+
+/* 新窗口徽章 */
+.newWindowBadge {
+  margin-left: var(--spacing-sm);
+  padding: 2px 6px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* 合并区域高亮 */
+.mergeHighlight {
+  border-top: 2px solid var(--color-primary) !important;
+  background: rgba(0, 120, 212, 0.05) !important;
+}
+
+[data-theme="dark"] .mergeHighlight {
+  background: rgba(0, 120, 212, 0.1) !important;
+}
+
+/* 拖拽时tab栏禁用窗口拖动 */
+.tabBarDraggingDisabled {
+  -webkit-app-region: no-drag;
+}

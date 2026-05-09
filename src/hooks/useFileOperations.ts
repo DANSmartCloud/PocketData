@@ -1,21 +1,67 @@
 import { isTauri } from "@tauri-apps/api/core";
-import { useFileStore, DTAFile } from "@/stores/fileStore";
-import { sampleData, sampleVariables } from "@/utils/sampleData";
+import { useFileStore, DTAFile, Variable, ScriptFile } from "@/stores/fileStore";
+import { useUIStore } from "@/stores/uiStore";
 
-const sampleFile: DTAFile = {
-  id: "sample_1",
-  path: "sample_data.dta",
-  name: "sample_data.dta",
-  version: 118,
-  nvar: 5,
-  nobs: 5,
-  variables: sampleVariables,
-  data: sampleData,
-  valueLabels: {},
-  timestamp: "2026-01-15",
-  label: "示例数据文件",
-  isDirty: false
-};
+
+async function parseExcelFromBackend(path: string): Promise<DTAFile> {
+  const { invoke } = await import("@tauri-apps/api/core");
+  
+  const excelData = await invoke<any>("open_excel_file", { 
+    path,
+    sheetName: null
+  });
+
+  const headers = excelData.headers as string[];
+  const rawData = excelData.data as any[][];
+  
+  const variables: Variable[] = headers.map((name, idx) => ({
+    name: name || `Column_${idx + 1}`,
+    type: "string" as const,
+    label: name || `Column_${idx + 1}`
+  }));
+
+  const data: Record<string, unknown>[] = rawData.map((row) => {
+    const record: Record<string, unknown> = {};
+    headers.forEach((header, idx) => {
+      const value = row[idx];
+      record[header || `Column_${idx + 1}`] = value === null || value === undefined ? "" : value;
+    });
+    return record;
+  });
+
+  return {
+    id: `excel_${Date.now()}`,
+    path: excelData.path as string,
+    name: excelData.name as string,
+    version: 0,
+    nvar: variables.length,
+    nobs: data.length,
+    variables,
+    data,
+    valueLabels: {},
+    timestamp: new Date().toISOString().split("T")[0],
+    label: excelData.name as string,
+    isDirty: false
+  };
+}
+
+async function parseScriptFile(path: string, fileName: string): Promise<ScriptFile> {
+  const { readFile } = await import('@tauri-apps/plugin-fs');
+  const fileData = await readFile(path);
+  const text = new TextDecoder().decode(fileData);
+  
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  const language = extension === 'py' ? 'python' : 'stata';
+  
+  return {
+    id: `script_${Date.now()}`,
+    path,
+    name: fileName,
+    content: text,
+    language,
+    isDirty: false
+  };
+}
 
 async function parseCSVFile(file: File): Promise<DTAFile> {
   let text = await file.text();
@@ -81,7 +127,7 @@ function convertToCSV(file: DTAFile): string {
 }
 
 export function useFileOperations() {
-  const { openFile } = useFileStore();
+  const { openFile, openScript } = useFileStore();
 
   const handleOpenFile = async () => {
     try {
@@ -90,7 +136,7 @@ export function useFileOperations() {
       if (!tauriEnv) {
         const input = document.createElement("input");
         input.type = "file";
-        input.accept = ".dta,.csv,.xls,.xlsx";
+        input.accept = ".dta,.csv,.xls,.xlsx,.do,.py";
         input.onchange = async (e) => {
           const file = (e.target as HTMLInputElement).files?.[0];
           if (!file) return;
@@ -102,7 +148,7 @@ export function useFileOperations() {
               dtaFile = await parseCSVFile(file);
             } else {
               console.warn("Web 模式仅支持 CSV 文件。其他格式请使用桌面版本。");
-              dtaFile = await parseCSVFile(file);
+              return;
             }
 
             openFile(dtaFile);
@@ -116,7 +162,6 @@ export function useFileOperations() {
       }
 
       const { open } = await import("@tauri-apps/plugin-dialog");
-      const { invoke } = await import("@tauri-apps/api/core");
 
       const selected = await open({
         multiple: false,
@@ -124,18 +169,50 @@ export function useFileOperations() {
           { name: "Stata Data Files", extensions: ["dta"] },
           { name: "CSV Files", extensions: ["csv"] },
           { name: "Excel Files", extensions: ["xls", "xlsx"] },
+          { name: "Stata Script Files", extensions: ["do"] },
+          { name: "Python Script Files", extensions: ["py"] },
           { name: "All Files", extensions: ["*"] }
         ]
       });
 
       if (selected) {
         const path = typeof selected === 'string' ? selected : selected;
-        const file: DTAFile = await invoke("open_dta_file", { path });
-        openFile(file);
+        const fileName = path.split(/[/\\]/).pop() || '';
+        const extension = fileName.split('.').pop()?.toLowerCase();
+
+        if (extension === 'do' || extension === 'py') {
+          const scriptFile = await parseScriptFile(path, fileName);
+          openScript(scriptFile);
+          return;
+        }
+
+        let dtaFile: DTAFile;
+
+        if (extension === 'csv') {
+          const { readFile } = await import('@tauri-apps/plugin-fs');
+          const fileData = await readFile(path);
+          const text = new TextDecoder().decode(fileData);
+          
+          const blob = new Blob([text]);
+          const file = new File([blob], fileName);
+          dtaFile = await parseCSVFile(file);
+        } else if (extension === 'dta') {
+          const { invoke } = await import("@tauri-apps/api/core");
+          dtaFile = await invoke("open_dta_file", { path });
+          useUIStore.getState().setOperationMode('stata');
+        } else if (extension === 'xls' || extension === 'xlsx') {
+          dtaFile = await parseExcelFromBackend(path);
+          useUIStore.getState().setOperationMode('excel');
+        } else {
+          alert(`不支持的文件格式: .${extension}`);
+          return;
+        }
+
+        openFile(dtaFile);
       }
     } catch (error) {
       console.error("Failed to open file:", error);
-      openFile(sampleFile);
+      alert(`打开文件失败: ${error}`);
     }
   };
 

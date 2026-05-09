@@ -6,7 +6,7 @@ import styles from "./StatusBar.module.css";
 
 export function StatusBar() {
   const { getActiveFile, tabs, activeTabId } = useFileStore();
-  const { operationMode, setOperationMode } = useUIStore();
+  const { operationMode, setOperationMode, selectionRange } = useUIStore();
   const { scale, zoomIn, zoomOut, resetZoom } = useZoomStore();
 
   const activeFile = getActiveFile();
@@ -17,6 +17,35 @@ export function StatusBar() {
 
   const handleModeToggle = () => {
     setOperationMode(operationMode === 'stata' ? 'excel' : 'stata');
+  };
+
+  const getSelectionDisplay = () => {
+    if (!selectionRange) return null;
+    
+    const { start, end } = selectionRange;
+    const isSingleCell = start.row === end.row && start.col === end.col;
+    
+    // 将列号转换为Excel风格字母（0=A, 1=B, 26=AA）
+    const colToLetter = (col: number) => {
+      let letter = '';
+      let n = col;
+      while (n >= 0) {
+        letter = String.fromCharCode(65 + (n % 26)) + letter;
+        n = Math.floor(n / 26) - 1;
+      }
+      return letter;
+    };
+    
+    if (isSingleCell) {
+      return `${colToLetter(start.col)}${start.row + 1}`;
+    }
+    
+    const rowStart = Math.min(start.row, end.row) + 1;
+    const rowEnd = Math.max(start.row, end.row) + 1;
+    const colStart = Math.min(start.col, end.col);
+    const colEnd = Math.max(start.col, end.col);
+    
+    return `${colToLetter(colStart)}${rowStart}:${colToLetter(colEnd)}${rowEnd}`;
   };
 
   return (
@@ -31,6 +60,9 @@ export function StatusBar() {
             <span className={styles.item}>
               <Columns size={14} />
               <span className={styles.itemText}>{activeFile.nvar} 列</span>
+            </span>
+            <span className={styles.item}>
+              <span className={styles.selectionText}>{getSelectionDisplay() || '未选择'}</span>
             </span>
             <button
               className={`${styles.modeTag} ${operationMode === 'stata' ? styles.modeStata : styles.modeExcel}`}

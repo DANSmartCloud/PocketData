@@ -29,6 +29,16 @@ export interface Tab {
   fileId: string;
   title: string;
   isActive: boolean;
+  type?: 'data' | 'script';
+}
+
+export interface ScriptFile {
+  id: string;
+  path: string;
+  name: string;
+  content: string;
+  language: 'stata' | 'python';
+  isDirty: boolean;
 }
 
 export interface HistoryEntry {
@@ -43,21 +53,27 @@ export interface HistoryEntry {
 
 interface FileState {
   files: Record<string, DTAFile>;
+  scripts: Record<string, ScriptFile>;
   tabs: Tab[];
   activeTabId: string | null;
   history: Record<string, HistoryEntry[]>;
   historyIndex: Record<string, number>;
 
   openFile: (file: DTAFile) => string;
+  openScript: (script: ScriptFile) => string;
+  updateScriptContent: (scriptId: string, content: string) => void;
   closeTab: (tabId: string) => void;
   setActiveTab: (tabId: string) => void;
   updateCell: (fileId: string, rowIndex: number, colIndex: number, value: unknown) => void;
   getActiveFile: () => DTAFile | null;
+  getActiveScript: () => ScriptFile | null;
   markFileClean: (fileId: string) => void;
   renameTab: (tabId: string, title: string) => void;
   reorderTabs: (tabIds: string[]) => void;
-  moveTabToNewWindow: (tabId: string) => void;
+  moveTabToNewWindow: (tabId: string) => Promise<void>;
   mergeTabs: (tabIds: string[]) => void;
+  receiveTabFromWindow: (tab: Tab, file: DTAFile, insertIndex?: number) => void;
+  getTabData: (tabId: string) => { tab: Tab; file: DTAFile } | null;
   undo: () => void;
   redo: () => void;
   canUndo: () => boolean;
@@ -68,6 +84,7 @@ let tabCounter = 0;
 
 export const useFileStore = create<FileState>((set, get) => ({
   files: {},
+  scripts: {},
   tabs: [],
   activeTabId: null,
   history: {},
@@ -105,6 +122,48 @@ export const useFileStore = create<FileState>((set, get) => ({
     });
 
     return tabId;
+  },
+
+  openScript: (script) => {
+    const existingTab = Object.values(get().scripts).find(s => s.path === script.path);
+    if (existingTab) {
+      const tab = get().tabs.find(t => t.fileId === existingTab.id);
+      if (tab) {
+        set({ activeTabId: tab.id });
+        return tab.id;
+      }
+    }
+
+    const scriptId = script.id || `script_${Date.now()}`;
+    const tabId = `tab_${++tabCounter}`;
+    const newScript = { ...script, id: scriptId, isDirty: false };
+    const newTab: Tab = {
+      id: tabId,
+      fileId: scriptId,
+      title: script.name,
+      isActive: true,
+      type: 'script'
+    };
+
+    set(state => {
+      const otherTabs = state.tabs.map(t => ({ ...t, isActive: false }));
+      return {
+        scripts: { ...state.scripts, [scriptId]: newScript },
+        tabs: [...otherTabs, newTab],
+        activeTabId: tabId
+      };
+    });
+
+    return tabId;
+  },
+
+  updateScriptContent: (scriptId, content) => {
+    set(state => ({
+      scripts: {
+        ...state.scripts,
+        [scriptId]: { ...state.scripts[scriptId], content, isDirty: true }
+      }
+    }));
   },
 
   closeTab: (tabId) => {
@@ -191,6 +250,13 @@ export const useFileStore = create<FileState>((set, get) => ({
     return files[activeTab.fileId] || null;
   },
 
+  getActiveScript: () => {
+    const { tabs, activeTabId, scripts } = get();
+    const activeTab = tabs.find(t => t.id === activeTabId);
+    if (!activeTab || activeTab.type !== 'script') return null;
+    return scripts[activeTab.fileId] || null;
+  },
+
   markFileClean: (fileId) => {
     set(state => ({
       files: {
@@ -202,24 +268,106 @@ export const useFileStore = create<FileState>((set, get) => ({
 
   renameTab: (tabId, title) => {
     set(state => ({
-      tabs: state.tabs.map(t => t.id === tabId ? { ...t, title } : t)
+      tabs: state.tabs.map(t =>
+        t.id === tabId ? { ...t, title } : t
+      )
     }));
   },
 
   reorderTabs: (tabIds) => {
     set(state => {
-      const tabMap = new Map(state.tabs.map(t => [t.id, t]));
-      const reorderedTabs = tabIds.map(id => tabMap.get(id)!).filter(Boolean);
-      return { tabs: reorderedTabs };
+      const newTabs = tabIds
+        .map(id => state.tabs.find(t => t.id === id))
+        .filter((t): t is Tab => t !== undefined);
+      return { tabs: newTabs };
     });
   },
 
-  moveTabToNewWindow: (tabId) => {
-    console.log('Move tab to new window:', tabId);
+  moveTabToNewWindow: async (tabId) => {
+    const { tabs, files } = get();
+    const tab = tabs.find(t => t.id === tabId);
+    if (!tab) return;
+
+    const file = files[tab.fileId];
+    if (!file) return;
+
+    // 实际移动逻辑在 Header.tsx 中处理
+    console.log('Moving tab to new window:', { tab, file });
   },
 
   mergeTabs: (tabIds) => {
     console.log('Merge tabs:', tabIds);
+  },
+
+  receiveTabFromWindow: (tab, file, insertIndex) => {
+    console.log('[fileStore] receiveTabFromWindow called:', { tab, file, insertIndex });
+    
+    set(state => {
+      // 防重复：检查是否已存在相同来源的标签页（通过 tab.id 和 file.path 判断）
+      const existingTab = state.tabs.find(t => 
+        t.title === tab.title && 
+        state.files[t.fileId]?.path === file.path
+      );
+      if (existingTab) {
+        console.log('[fileStore] Tab already exists, skipping:', existingTab.id);
+        return state;
+      }
+      
+      // 生成新的 ID，避免冲突
+      const newFileId = `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const newTabId = `tab_${++tabCounter}`;
+      
+      // 深拷贝文件数据，确保完整性
+      const newFile: DTAFile = {
+        ...file,
+        id: newFileId,
+        // 确保 data 被正确复制
+        data: file.data ? [...file.data.map(row => ({ ...row }))] : [],
+        variables: file.variables ? [...file.variables] : [],
+        valueLabels: file.valueLabels ? { ...file.valueLabels } : {},
+        isDirty: file.isDirty ?? false
+      };
+      
+      const newTab: Tab = {
+        ...tab,
+        id: newTabId,
+        fileId: newFileId,
+        isActive: true
+      };
+      
+      console.log('[fileStore] Created new file and tab:', { newFileId, newTabId, dataLength: newFile.data.length });
+      
+      const otherTabs = state.tabs.map(t => ({ ...t, isActive: false }));
+      
+      let newTabs: Tab[];
+      if (insertIndex !== undefined && insertIndex >= 0 && insertIndex <= otherTabs.length) {
+        newTabs = [...otherTabs.slice(0, insertIndex), newTab, ...otherTabs.slice(insertIndex)];
+      } else {
+        newTabs = [...otherTabs, newTab];
+      }
+
+      const result = {
+        files: { ...state.files, [newFileId]: newFile },
+        tabs: newTabs,
+        activeTabId: newTabId,
+        history: { ...state.history, [newFileId]: [] },
+        historyIndex: { ...state.historyIndex, [newFileId]: -1 }
+      };
+      
+      console.log('[fileStore] State updated, new tabs count:', newTabs.length);
+      return result;
+    });
+  },
+
+  getTabData: (tabId) => {
+    const { tabs, files } = get();
+    const tab = tabs.find(t => t.id === tabId);
+    if (!tab) return null;
+
+    const file = files[tab.fileId];
+    if (!file) return null;
+
+    return { tab, file };
   },
 
   undo: () => {
@@ -236,25 +384,22 @@ export const useFileStore = create<FileState>((set, get) => ({
     if (currentIndex < 0) return;
     
     const entry = fileHistory[currentIndex];
-    if (!entry || entry.type !== 'cell_edit') return;
+    if (!entry) return;
     
-    // 恢复到之前的状态
     const file = files[fileId];
-    if (!file || entry.rowIndex === undefined || entry.colIndex === undefined) return;
-    
-    const variable = file.variables[entry.colIndex];
-    if (!variable) return;
+    if (!file) return;
     
     const newData = [...file.data];
-    newData[entry.rowIndex] = {
-      ...newData[entry.rowIndex],
-      [variable.name]: entry.before
-    };
+    if (entry.type === 'cell_edit' && entry.before && typeof entry.before === 'object') {
+      const { rowIndex, value } = entry.before as { rowIndex: number; value: unknown };
+      const varName = file.variables[(entry.before as { colIndex: number }).colIndex].name;
+      newData[rowIndex] = { ...newData[rowIndex], [varName]: value };
+    }
     
     set(state => ({
       files: {
         ...state.files,
-        [fileId]: { ...file, data: newData, isDirty: true }
+        [fileId]: { ...file, data: newData }
       },
       historyIndex: {
         ...state.historyIndex,
@@ -262,7 +407,7 @@ export const useFileStore = create<FileState>((set, get) => ({
       }
     }));
   },
-
+  
   redo: () => {
     const { activeTabId, tabs, files, history, historyIndex } = get();
     if (!activeTabId) return;
@@ -278,25 +423,22 @@ export const useFileStore = create<FileState>((set, get) => ({
     
     const nextIndex = currentIndex + 1;
     const entry = fileHistory[nextIndex];
-    if (!entry || entry.type !== 'cell_edit') return;
+    if (!entry) return;
     
-    // 恢复到之后的状态
     const file = files[fileId];
-    if (!file || entry.rowIndex === undefined || entry.colIndex === undefined) return;
-    
-    const variable = file.variables[entry.colIndex];
-    if (!variable) return;
+    if (!file) return;
     
     const newData = [...file.data];
-    newData[entry.rowIndex] = {
-      ...newData[entry.rowIndex],
-      [variable.name]: entry.after
-    };
+    if (entry.type === 'cell_edit' && entry.after && typeof entry.after === 'object') {
+      const { rowIndex, value } = entry.after as { rowIndex: number; value: unknown };
+      const varName = file.variables[(entry.after as { colIndex: number }).colIndex].name;
+      newData[rowIndex] = { ...newData[rowIndex], [varName]: value };
+    }
     
     set(state => ({
       files: {
         ...state.files,
-        [fileId]: { ...file, data: newData, isDirty: true }
+        [fileId]: { ...file, data: newData }
       },
       historyIndex: {
         ...state.historyIndex,
@@ -304,7 +446,7 @@ export const useFileStore = create<FileState>((set, get) => ({
       }
     }));
   },
-
+  
   canUndo: () => {
     const { activeTabId, tabs, historyIndex } = get();
     if (!activeTabId) return false;
@@ -316,7 +458,7 @@ export const useFileStore = create<FileState>((set, get) => ({
     const currentIndex = historyIndex[fileId] ?? -1;
     return currentIndex >= 0;
   },
-
+  
   canRedo: () => {
     const { activeTabId, tabs, history, historyIndex } = get();
     if (!activeTabId) return false;
@@ -327,6 +469,7 @@ export const useFileStore = create<FileState>((set, get) => ({
     const fileId = activeTab.fileId;
     const fileHistory = history[fileId] || [];
     const currentIndex = historyIndex[fileId] ?? -1;
+    
     return currentIndex < fileHistory.length - 1;
   }
 }));

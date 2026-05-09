@@ -27,12 +27,26 @@
 }
 
 .menuButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   padding: 4px 12px;
   font-size: 13px;
   color: var(--color-text-primary);
   border-radius: var(--radius-sm);
   transition: all var(--transition-fast);
   white-space: nowrap;
+}
+
+.menuIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menuLabel {
+  display: flex;
+  align-items: center;
 }
 
 .menuButton:hover,
@@ -121,6 +135,17 @@
 
 .itemLabel {
   flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.itemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
 }
 
 .shortcut {

@@ -22,12 +22,28 @@ export function DataTable() {
   const hotTableRef = useRef<Handsontable | null>(null);
   const [containerHeight, setContainerHeight] = useState(400);
 
+  const EXTRA_ROWS = 100;
+  const EXTRA_COLS = 26;
+
+  const colToLetter = useCallback((col: number) => {
+    let letter = '';
+    let n = col;
+    while (n >= 0) {
+      letter = String.fromCharCode(65 + (n % 26)) + letter;
+      n = Math.floor(n / 26) - 1;
+    }
+    return letter;
+  }, []);
+
   // 用于追踪捏合手势
   const pinchState = useRef({
     initialDistance: 0,
     initialScale: 1,
     isPinching: false,
   });
+
+  // 防止 afterSelection 无限循环
+  const lastSelectionRef = useRef<{ row: number; col: number; row2: number; col2: number } | null>(null);
 
   const activeFile = getActiveFile();
 
@@ -158,7 +174,10 @@ export function DataTable() {
   const data = useMemo<CellValue[][]>(() => {
     if (!activeFile) return [];
 
-    return activeFile.data.map((row) => {
+    const isExcelMode = operationMode === "excel";
+
+    // 原始数据行数
+    const originalRows = activeFile.data.map((row) => {
       return activeFile.variables.map((variable) => {
         const value = row[variable.name];
         if (value === null || value === undefined) return "";
@@ -169,7 +188,73 @@ export function DataTable() {
         return String(value);
       });
     });
-  }, [activeFile]);
+
+    if (isExcelMode) {
+      // Excel模式：第一行是变量名
+      const headerRow = activeFile.variables.map(v => v.name);
+      // 添加EXTRA_COLS个空白列标题
+      for (let i = 0; i < EXTRA_COLS; i++) {
+        headerRow.push("");
+      }
+
+      // 在右侧添加空列
+      const extendedRows = originalRows.map(row => {
+        const emptyCols = new Array(EXTRA_COLS).fill("");
+        return [...row, ...emptyCols];
+      });
+
+      // 第一行插入变量名行
+      extendedRows.unshift(headerRow);
+
+      // 在底部添加EXTRA_ROWS个空白行
+      const totalCols = activeFile.variables.length + EXTRA_COLS;
+      for (let i = 0; i < EXTRA_ROWS; i++) {
+        extendedRows.push(new Array(totalCols).fill(""));
+      }
+
+      return extendedRows;
+    }
+
+    return originalRows;
+  }, [activeFile, operationMode]);
+
+  const colHeaders = useMemo(() => {
+    if (!activeFile) return true;
+    
+    const isExcelMode = operationMode === "excel";
+    
+    if (isExcelMode) {
+      // Excel模式：列标题全为字母A, B, C...
+      const totalCols = activeFile.variables.length + EXTRA_COLS;
+      const headers: string[] = [];
+      for (let i = 0; i < totalCols; i++) {
+        headers.push(colToLetter(i));
+      }
+      return headers;
+    }
+    
+    // Stata模式：仅使用变量名
+    return activeFile.variables.map((v) => v.name);
+  }, [activeFile, operationMode, colToLetter]);
+
+  const handleAfterSelection = useCallback((
+    row: number,
+    col: number,
+    row2: number,
+    col2: number
+  ) => {
+    // 防止无限循环：如果选择相同，不更新
+    const lastSel = lastSelectionRef.current;
+    if (lastSel && lastSel.row === row && lastSel.col === col && lastSel.row2 === row2 && lastSel.col2 === col2) {
+      return;
+    }
+    lastSelectionRef.current = { row, col, row2, col2 };
+    useUIStore.getState().setSelectedCell({ row, col });
+    useUIStore.getState().setSelectionRange({
+      start: { row, col },
+      end: { row: row2, col: col2 },
+    });
+  }, []);
 
   const handleChange = useCallback((changes: CellChange[] | null) => {
     if (!activeFile || !changes) return;
@@ -212,7 +297,7 @@ export function DataTable() {
             }
           }}
           data={data}
-          colHeaders={activeFile.variables.map((v) => v.name)}
+          colHeaders={colHeaders}
           rowHeaders={true}
           width="100%"
           height={containerHeight / scale}
@@ -231,18 +316,31 @@ export function DataTable() {
           readOnly={!isEditable}
           licenseKey="non-commercial-and-evaluation"
           afterChange={handleChange}
+          afterSelection={handleAfterSelection}
           colWidths={scaledColWidth}
           cells={(row, col) => {
             const cellMeta: Record<string, unknown> = {};
 
-            const variable = activeFile.variables[col];
-            if (variable) {
-              if (variable.type === "double" || variable.type === "float") {
-                cellMeta.type = "numeric";
-                cellMeta.numericFormat = {
-                  pattern: "0.0000",
-                };
+            const isExcelMode = operationMode === "excel";
+            const isVariableHeaderRow = isExcelMode && row === 0 && col < activeFile.variables.length;
+
+            if (!isExcelMode) {
+              const variable = activeFile.variables[col];
+              if (variable) {
+                if (variable.type === "double" || variable.type === "float") {
+                  cellMeta.type = "numeric";
+                  cellMeta.numericFormat = {
+                    pattern: "0.0000",
+                  };
+                }
               }
+            }
+
+            if (isVariableHeaderRow) {
+              cellMeta.style = {
+                fontWeight: '600',
+                background: 'rgba(37, 99, 235, 0.05)',
+              };
             }
 
             const highlight = highlightedCells.find(h => h.row === row && h.col === col);

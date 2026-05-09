@@ -18,7 +18,9 @@
         "minWidth": 800,
         "minHeight": 600,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "decorations": false,
+        "dragDropEnabled": false
       }
     ],
     "security": {
@@ -26,9 +28,7 @@
     }
   },
   "plugins": {
-    "dialog": {},
-    "fs": {
-      "scope": ["**"]
-    }
+    "dialog": null,
+    "fs": null
   }
 }

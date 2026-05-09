@@ -118,6 +118,21 @@
   background: #10b981;
 }
 
+/* 单元格位置显示 */
+.selectionText {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-primary);
+  padding: 2px 8px;
+  background: rgba(37, 99, 235, 0.1);
+  border-radius: var(--radius-sm);
+}
+
+[data-theme="dark"] .selectionText {
+  background: rgba(37, 99, 235, 0.2);
+}
+
 /* 移动端适配 */
 @media (max-width: 768px) {
   .statusBar {

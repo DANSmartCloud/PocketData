@@ -1,11 +1,10 @@
 .header {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   height: var(--header-height);
-  padding: 0 var(--spacing-md);
+  padding: 0 0 0 0;
   background: var(--color-card-light);
   border-bottom: 1px solid var(--color-border-light);
-  -webkit-app-region: drag;
   user-select: none;
   gap: var(--spacing-md);
 }
@@ -21,7 +20,8 @@
   align-items: center;
   gap: var(--spacing-md);
   flex-shrink: 0;
-  -webkit-app-region: no-drag;
+  padding-left: var(--spacing-md);
+  -webkit-app-region: drag;
 }
 
 .menuBtn {
@@ -126,6 +126,7 @@
   height: 100%;
   overflow: hidden;
   -webkit-app-region: no-drag;
+  cursor: default;
 }
 
 .tabList {
@@ -186,6 +187,12 @@
   opacity: 0.5;
 }
 
+.tab.ghost {
+  opacity: 0.4;
+  background: transparent;
+  border: 2px dashed var(--color-primary);
+}
+
 .tabTitle {
   font-size: 13px;
   color: var(--color-text-secondary);
@@ -193,6 +200,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 140px;
+}
+
+.tabIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .tab.active .tabTitle {
@@ -256,6 +270,75 @@
   }
 }
 
+/* 窗口操作按钮 */
+.windowControls {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  margin-left: auto;
+  -webkit-app-region: no-drag;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.windowBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: calc(var(--header-height) + 1px);
+  color: var(--color-text-secondary);
+  transition: background 150ms ease-in-out;
+  flex-shrink: 0;
+  margin: 0;
+  -webkit-app-region: no-drag;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+  outline: none;
+}
+
+.windowBtn:hover {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .windowBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-primary);
+}
+
+.windowBtnClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: calc(var(--header-height) + 1px);
+  color: var(--color-text-secondary);
+  transition: all 150ms ease-in-out;
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: 0;
+  -webkit-app-region: no-drag;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+  outline: none;
+}
+
+.windowBtnClose:hover {
+  background: #e81123;
+  color: white;
+}
+
+.windowIcon {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
 @media (max-width: 480px) {
   .logoText {
     display: none;
@@ -264,4 +347,54 @@
   .fileInfo {
     display: none;
   }
+}
+
+/* 拖拽预览 */
+.dragPreview {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.dragPreviewContent {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-card-light);
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .dragPreviewContent {
+  background: var(--color-card-dark);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* 合并区域高亮 */
+.mergeHighlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-primary);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* 新窗口徽章 */
+.newWindowBadge {
+  margin-left: var(--spacing-sm);
+  padding: 2px 6px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 600;
 }
