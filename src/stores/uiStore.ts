@@ -3,17 +3,17 @@ import { create } from 'zustand';
 type Theme = 'light' | 'dark' | 'system';
 type OperationMode = 'stata' | 'excel';
 
-interface CellPosition {
+export interface CellPosition {
   row: number;
   col: number;
 }
 
-interface SelectionRange {
+export interface SelectionRange {
   start: CellPosition;
   end: CellPosition;
 }
 
-interface HighlightedCell {
+export interface HighlightedCell {
   row: number;
   col: number;
   color: string;

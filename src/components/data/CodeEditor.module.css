@@ -13,7 +13,7 @@
   padding: var(--spacing-xs) var(--spacing-md);
   background: var(--color-bg-elevated);
   border-bottom: 1px solid var(--color-border);
-  height: 40px;
+  height: 38px;
   flex-shrink: 0;
 }
 
@@ -41,37 +41,11 @@
   gap: var(--spacing-xs);
 }
 
-.toolbarDivider {
-  width: 1px;
-  height: 20px;
-  background: var(--color-border);
-  margin: 0 var(--spacing-xs);
-}
-
-.tab {
-  padding: var(--spacing-xs) var(--spacing-md);
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.tab:hover {
-  background: var(--color-bg-light);
-  color: var(--color-text);
-}
-
-.tab.active {
-  color: var(--color-text);
-  background: var(--color-bg-light);
-  border-color: var(--color-border);
-}
-
 .executeButton {
-  padding: var(--spacing-xs) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--spacing-xs) var(--spacing-md);
   font-size: 13px;
   font-weight: 500;
   color: white;
@@ -112,76 +86,105 @@
   color: var(--color-text);
 }
 
+.drawerButton.active {
+  color: var(--color-primary);
+  background: rgba(37, 99, 235, 0.1);
+}
+
 .mainContent {
   display: flex;
   flex: 1;
   overflow: hidden;
-  position: relative;
 }
 
-.editorContainer {
+.editorArea {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   overflow: hidden;
 }
 
-.commandsDrawer {
-  width: 320px;
-  border-left: 1px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
-  background: var(--color-bg);
-  flex-shrink: 0;
+.editorContainer {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.terminalDrawer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 320px;
-  background: var(--color-bg-elevated);
-  border-top: 1px solid var(--color-border);
+.terminalPanel {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  z-index: 10;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+  position: relative;
 }
 
 .terminalResizeHandle {
   position: absolute;
-  top: -4px;
+  top: -3px;
   left: 0;
   right: 0;
-  height: 8px;
+  height: 6px;
   cursor: ns-resize;
   z-index: 11;
 }
 
-.terminalResizeHandle:hover {
+.terminalResizeHandle:hover,
+.terminalResizeHandle:active {
   background: var(--color-primary);
-  opacity: 0.3;
+  opacity: 0.4;
 }
 
-.drawerHeader {
+.terminalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 0 var(--spacing-md);
   border-bottom: 1px solid var(--color-border);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text);
-  background: var(--color-bg-light);
+  height: 32px;
   flex-shrink: 0;
+  background: var(--color-bg-light);
 }
 
-.drawerActions {
+.terminalTabs {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 0;
+  height: 100%;
 }
 
-.drawerCloseBtn {
+.terminalTab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 var(--spacing-md);
+  height: 100%;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.terminalTab:hover {
+  color: var(--color-text);
+}
+
+.terminalTabActive {
+  color: var(--color-text);
+  border-bottom-color: var(--color-primary);
+}
+
+.terminalActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.terminalActionBtn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -190,29 +193,23 @@
   color: var(--color-text-secondary);
   background: transparent;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.drawerCloseBtn:hover {
+.terminalActionBtn:hover {
   background: var(--color-bg-light);
   color: var(--color-text);
-}
-
-.drawerContent {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--spacing-xs);
 }
 
 .terminalContent {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
   font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.5;
   background: #1e1e1e;
   color: #d4d4d4;
 }
@@ -238,29 +235,60 @@
   margin-top: var(--spacing-xs);
 }
 
-.noOutput {
+.terminalPlaceholder {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: var(--color-text-secondary);
+  color: #666;
   font-size: 13px;
 }
 
-.clearButton {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: 12px;
+.commandsDrawer {
+  width: 300px;
+  border-left: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  flex-shrink: 0;
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-bg-light);
+  flex-shrink: 0;
+}
+
+.drawerCloseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
   color: var(--color-text-secondary);
   background: transparent;
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.clearButton:hover {
+.drawerCloseBtn:hover {
   background: var(--color-bg-light);
   color: var(--color-text);
+}
+
+.drawerContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-xs);
 }
 
 .commandItem {
@@ -294,6 +322,90 @@
   font-size: 12px;
   color: var(--color-text-secondary);
   margin-top: var(--spacing-2xs);
+}
+
+.settingGroup {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.settingLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-xs);
+}
+
+.settingSelect {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 12px;
+  color: var(--color-text);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+}
+
+.settingSelect:focus {
+  border-color: var(--color-primary);
+}
+
+.settingRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.settingBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.settingBtn:hover {
+  background: var(--color-border-light);
+}
+
+.settingValue {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  min-width: 40px;
+  text-align: center;
+}
+
+.settingToggle {
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.settingToggle:hover {
+  background: var(--color-border-light);
+}
+
+.settingToggleOn {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: rgba(37, 99, 235, 0.05);
 }
 
 .statusBar {

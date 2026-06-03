@@ -40,7 +40,7 @@ const debugSampleFile: DTAFile = {
 function App() {
   const { theme, operationMode, sidebarCollapsed, setSidebarCollapsed } = useUIStore();
   const { tabs, activeTabId, files, scripts, openFile } = useFileStore();
-  const { handleOpenFile } = useFileOperations();
+  const { handleOpenFile, handleSaveFile } = useFileOperations();
 
   // 调试：自动加载示例数据
   useEffect(() => {
@@ -186,9 +186,9 @@ function App() {
     }
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault();
-      console.log('Save shortcut triggered');
+      handleSaveFile();
     }
-  }, [handleOpenFile]);
+  }, [handleOpenFile, handleSaveFile]);
 
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsed(!sidebarCollapsed);

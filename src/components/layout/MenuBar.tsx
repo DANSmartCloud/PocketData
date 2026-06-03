@@ -31,7 +31,7 @@ interface Menu {
 export function MenuBar() {
   const { getActiveFile, undo, redo, canUndo, canRedo } = useFileStore();
   const { theme, setTheme, operationMode, setOperationMode } = useUIStore();
-  const { handleOpenFile, handleExportFile, handleImportFile } = useFileOperations();
+  const { handleOpenFile, handleExportFile, handleImportFile, handleSaveFile } = useFileOperations();
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [closingMenu, setClosingMenu] = useState<string | null>(null);
@@ -47,8 +47,8 @@ export function MenuBar() {
       icon: <File size={14} />,
       items: [
         { label: "打开...", key: "open", shortcut: "Ctrl+O", action: handleOpenFile, icon: <FolderOpen size={14} /> },
-        { label: "保存", key: "save", shortcut: "Ctrl+S", disabled: !hasFile, icon: <Save size={14} /> },
-        { label: "另存为...", key: "saveAs", disabled: !hasFile, icon: <Save size={14} /> },
+        { label: "保存", key: "save", shortcut: "Ctrl+S", disabled: !hasFile, action: handleSaveFile, icon: <Save size={14} /> },
+        { label: "另存为...", key: "saveAs", disabled: !hasFile, action: handleSaveFile, icon: <Save size={14} /> },
         { label: "", key: "sep1", separator: true },
         { label: "导入数据...", key: "import", action: handleImportFile, icon: <Upload size={14} /> },
         { label: "导出数据...", key: "export", disabled: !hasFile, action: () => handleExportFile('csv'), icon: <Download size={14} /> },

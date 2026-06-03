@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useEffect, useState } from "react";
 import { HotTable } from "@handsontable/react-wrapper";
 import { registerAllModules } from "handsontable/registry";
 import { useFileStore } from "@/stores/fileStore";
-import { useUIStore } from "@/stores/uiStore";
+import { useUIStore, type CellPosition, type HighlightedCell } from "@/stores/uiStore";
 import { useZoomStore } from "@/stores/zoomStore";
 import type { CellChange } from "handsontable/common";
 import type Handsontable from "handsontable";
@@ -237,22 +237,45 @@ export function DataTable() {
     return activeFile.variables.map((v) => v.name);
   }, [activeFile, operationMode, colToLetter]);
 
+  const selectedCellRef = useRef<CellPosition | null>(null);
+  const selectedColumnRef = useRef<number | null>(null);
+  const highlightedCellsRef = useRef<HighlightedCell[]>([]);
+
+  useEffect(() => {
+    selectedCellRef.current = selectedCell;
+    if (hotTableRef.current) {
+      hotTableRef.current.render();
+    }
+  }, [selectedCell]);
+
+  useEffect(() => {
+    selectedColumnRef.current = selectedColumn;
+    if (hotTableRef.current) {
+      hotTableRef.current.render();
+    }
+  }, [selectedColumn]);
+
+  useEffect(() => {
+    highlightedCellsRef.current = highlightedCells;
+    if (hotTableRef.current) {
+      hotTableRef.current.render();
+    }
+  }, [highlightedCells]);
+
   const handleAfterSelection = useCallback((
     row: number,
     col: number,
     row2: number,
     col2: number
   ) => {
-    // 防止无限循环：如果选择相同，不更新
     const lastSel = lastSelectionRef.current;
     if (lastSel && lastSel.row === row && lastSel.col === col && lastSel.row2 === row2 && lastSel.col2 === col2) {
       return;
     }
     lastSelectionRef.current = { row, col, row2, col2 };
-    useUIStore.getState().setSelectedCell({ row, col });
-    useUIStore.getState().setSelectionRange({
-      start: { row, col },
-      end: { row: row2, col: col2 },
+    useUIStore.setState({
+      selectedCell: { row, col },
+      selectionRange: { start: { row, col }, end: { row: row2, col: col2 } },
     });
   }, []);
 
@@ -343,15 +366,16 @@ export function DataTable() {
               };
             }
 
-            const highlight = highlightedCells.find(h => h.row === row && h.col === col);
+            const currentHighlightedCells = highlightedCellsRef.current;
+            const highlight = currentHighlightedCells.find(h => h.row === row && h.col === col);
             if (highlight) {
               cellMeta.style = {
                 background: highlight.color,
               };
             }
 
-            // 选中列高亮
-            if (selectedColumn === col) {
+            const currentSelectedColumn = selectedColumnRef.current;
+            if (currentSelectedColumn === col) {
               const currentStyle = (cellMeta.style as Record<string, string>) || {};
               cellMeta.style = {
                 ...currentStyle,
@@ -361,8 +385,8 @@ export function DataTable() {
               };
             }
 
-            // 当前选中单元格
-            if (selectedCell && selectedCell.row === row && selectedCell.col === col) {
+            const currentSelectedCell = selectedCellRef.current;
+            if (currentSelectedCell && currentSelectedCell.row === row && currentSelectedCell.col === col) {
               const currentStyle = (cellMeta.style as Record<string, string>) || {};
               cellMeta.style = {
                 ...currentStyle,

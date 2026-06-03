@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { FolderOpen, Save, Search, PanelLeft, Highlighter, Eraser, Download, Moon, Sun, MoreHorizontal, FileSpreadsheet, FileText, Database } from "lucide-react";
 import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
+import { useFileOperations } from "@/hooks/useFileOperations";
 import styles from "./Toolbar.module.css";
 
 const HIGHLIGHT_COLORS = [
@@ -23,6 +24,7 @@ interface ToolbarProps {
 export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
   const { getActiveFile } = useFileStore();
   const { theme, setTheme, selectedCell, highlightedCells, addHighlightedCell, removeHighlightedCell, clearHighlightedCells } = useUIStore();
+  const { handleSaveFile, handleExportFile } = useFileOperations();
 
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [isColorPickerClosing, setIsColorPickerClosing] = useState(false);
@@ -125,7 +127,7 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
   // 处理导出
   const handleExport = (format: 'dta' | 'csv' | 'xlsx') => {
     toggleWithAnimation(true, setShowExportMenu, setIsExportMenuClosing, 100);
-    console.log(`导出格式: ${format}`);
+    handleExportFile(format);
   };
 
   // 计算导出菜单位置
@@ -176,7 +178,7 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
             <FolderOpen size={18} />
             <span className={styles.btnText}>打开</span>
           </button>
-          <button className={styles.btn} disabled={!activeFile || !isDirty} title="保存 (Ctrl+S)">
+          <button className={styles.btn} disabled={!activeFile || !isDirty} onClick={handleSaveFile} title="保存 (Ctrl+S)">
             <Save size={18} />
             <span className={styles.btnText}>保存</span>
           </button>
@@ -253,7 +255,7 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
           <button className={styles.iconBtn} onClick={onOpenFile} title="打开">
             <FolderOpen size={18} />
           </button>
-          <button className={styles.iconBtn} disabled={!activeFile || !isDirty} title="保存">
+          <button className={styles.iconBtn} disabled={!activeFile || !isDirty} onClick={handleSaveFile} title="保存">
             <Save size={18} />
           </button>
         </div>
