@@ -1,103 +1,93 @@
+/* ============================================
+   代码编辑器 - 与整体风格统一
+   ============================================ */
+
 .container {
   display: flex;
   flex-direction: column;
   height: 100%;
   background: var(--color-bg);
+  overflow: hidden;
   position: relative;
 }
 
-.toolbar {
+/* ============================================
+   极简文件头栏（仅文件名 + dirty indicator，20px）
+   ============================================ */
+.fileHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: var(--color-bg-elevated);
-  border-bottom: 1px solid var(--color-border);
-  height: 38px;
+  height: 20px;
+  padding: 0 12px;
+  background: var(--color-card-light);
+  border-bottom: 1px solid var(--color-border-light);
   flex-shrink: 0;
+  gap: 6px;
 }
 
-.toolbarLeft {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
+[data-theme="dark"] .fileHeader {
+  background: var(--color-card-dark);
+  border-bottom-color: var(--color-border-dark);
 }
 
-.toolbarTitle {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-.toolbarCenter {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.toolbarRight {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.executeButton {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: var(--spacing-xs) var(--spacing-md);
-  font-size: 13px;
-  font-weight: 500;
-  color: white;
-  background: var(--color-primary);
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.executeButton:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-subtle);
-}
-
-.executeButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.drawerButton {
+.fileIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  color: var(--color-text-secondary);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.drawerButton:hover {
-  background: var(--color-bg-light);
-  color: var(--color-text);
-}
-
-.drawerButton.active {
   color: var(--color-primary);
-  background: rgba(37, 99, 235, 0.1);
+  flex-shrink: 0;
 }
 
-.mainContent {
+.fileName {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+
+.dirtyIndicator {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #f59e0b;
+  flex-shrink: 0;
+}
+
+.langTag {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-left: auto;
+}
+
+/* ============================================
+   查找高亮 (Monaco decorations)
+   ============================================ */
+:global(.findHighlight) {
+  background: rgba(255, 200, 0, 0.35) !important;
+  border-radius: 2px;
+}
+
+/* ============================================
+   主内容区
+   ============================================ */
+.main {
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
-.editorArea {
+.editorWrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -105,77 +95,122 @@
   overflow: hidden;
 }
 
-.editorContainer {
+.editor {
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
 
-.terminalPanel {
+/* ============================================
+   拖拽手柄 (侧边栏左边缘)
+   ============================================ */
+.resizeHandle {
+  width: 4px;
+  cursor: col-resize;
+  flex-shrink: 0;
+  background: transparent;
+  transition: background var(--transition-fast);
+  z-index: 5;
+}
+
+.resizeHandle:hover,
+.resizeHandle:active {
+  background: var(--color-primary);
+}
+
+/* ============================================
+   终端
+   ============================================ */
+.terminal {
+  height: 160px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-bg-elevated);
-  position: relative;
+  border-top: 1px solid var(--color-border-light);
+  background: var(--color-card-light);
 }
 
-.terminalResizeHandle {
-  position: absolute;
-  top: -3px;
-  left: 0;
-  right: 0;
-  height: 6px;
-  cursor: ns-resize;
-  z-index: 11;
-}
-
-.terminalResizeHandle:hover,
-.terminalResizeHandle:active {
-  background: var(--color-primary);
-  opacity: 0.4;
+[data-theme="dark"] .terminal {
+  background: var(--color-card-dark);
+  border-top-color: var(--color-border-dark);
 }
 
 .terminalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--spacing-md);
-  border-bottom: 1px solid var(--color-border);
-  height: 32px;
+  padding: 0 8px 0 4px;
+  height: 30px;
+  border-bottom: 1px solid var(--color-border-light);
   flex-shrink: 0;
-  background: var(--color-bg-light);
+}
+
+[data-theme="dark"] .terminalHeader {
+  border-bottom-color: var(--color-border-dark);
 }
 
 .terminalTabs {
   display: flex;
   align-items: center;
   gap: 0;
-  height: 100%;
 }
 
 .terminalTab {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 0 var(--spacing-md);
-  height: 100%;
+  gap: 5px;
+  padding: 4px 12px;
   font-size: 12px;
+  font-weight: 500;
   color: var(--color-text-secondary);
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
   cursor: pointer;
   transition: all var(--transition-fast);
+  position: relative;
 }
 
 .terminalTab:hover {
-  color: var(--color-text);
+  color: var(--color-text-primary);
 }
 
 .terminalTabActive {
-  color: var(--color-text);
-  border-bottom-color: var(--color-primary);
+  color: var(--color-primary) !important;
+  border-bottom-color: var(--color-primary) !important;
+}
+
+.terminalTabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 14px;
+  padding: 0 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: white;
+  background: var(--color-secondary);
+  border-radius: 7px;
+  line-height: 1;
+}
+
+.terminalTabBadgeError {
+  background: #ef4444;
+}
+
+.runningDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: blink 1s ease-in-out infinite;
+  margin-right: 6px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
 }
 
 .terminalActions {
@@ -184,89 +219,198 @@
   gap: 2px;
 }
 
-.terminalActionBtn {
+.terminalBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   color: var(--color-text-secondary);
   background: transparent;
   border: none;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.terminalActionBtn:hover {
-  background: var(--color-bg-light);
-  color: var(--color-text);
+.terminalBtn:hover {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .terminalBtn:hover {
+  background: var(--color-border-dark);
 }
 
 .terminalContent {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-  font-size: 13px;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
   line-height: 1.5;
-  background: #1e1e1e;
-  color: #d4d4d4;
 }
 
-[data-theme="dark"] .terminalContent {
-  background: #0d0d0d;
-  color: #cccccc;
-}
-
-.terminalLine {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.terminalLineError {
-  color: #f44747;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.terminalLineExecuting {
-  color: #cccc00;
-  margin-top: var(--spacing-xs);
-}
-
-.terminalPlaceholder {
+.terminalEmpty {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #666;
-  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
 }
 
-.commandsDrawer {
-  width: 300px;
-  border-left: 1px solid var(--color-border);
+.terminalLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 1px 0;
+  color: var(--color-text-primary);
+}
+
+.terminalLine.stderr {
+  color: #ef4444;
+}
+
+.terminalLine.system {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.terminalLine.stdout {}
+
+.lineIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.linePrefix {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  user-select: none;
+}
+
+.terminalCursor {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.terminalCursor span {
+  display: inline-block;
+  width: 6px;
+  height: 14px;
+  background: var(--color-primary);
+  animation: cursorBlink 1s step-end infinite;
+}
+
+@keyframes cursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ============================================
+   右侧边栏（查找替换 / Stata命令 / 模板）
+   宽度由 React state 动态控制
+   ============================================ */
+.sidePanel {
+  border-left: 1px solid var(--color-border-light);
   display: flex;
   flex-direction: column;
-  background: var(--color-bg);
+  background: var(--color-card-light);
   flex-shrink: 0;
+  overflow: hidden;
 }
 
-.drawerHeader {
+[data-theme="dark"] .sidePanel {
+  background: var(--color-card-dark);
+  border-left-color: var(--color-border-dark);
+}
+
+.sidePanelHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-bottom: 1px solid var(--color-border);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text);
-  background: var(--color-bg-light);
+  height: 34px;
+  border-bottom: 1px solid var(--color-border-light);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
   flex-shrink: 0;
+  padding: 0 4px 0 2px;
 }
 
-.drawerCloseBtn {
+[data-theme="dark"] .sidePanelHeader {
+  border-bottom-color: var(--color-border-dark);
+}
+
+.sidePanelTabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidePanelTab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.sidePanelTab:hover {
+  color: var(--color-text-primary);
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .sidePanelTab:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sidePanelTabActive {
+  color: var(--color-primary) !important;
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+/* 底部条形指示器 - 圆角高亮，带动画（与全站统一） */
+.sidePanelTabActive::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 2px;
+  height: 3px;
+  background: var(--color-primary);
+  border-radius: 2px;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-primary) 50%, transparent);
+  animation: sidePanelTabIndicatorIn 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+@keyframes sidePanelTabIndicatorIn {
+  from {
+    transform: scaleX(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.closeBtn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -278,196 +422,799 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
-.drawerCloseBtn:hover {
-  background: var(--color-bg-light);
-  color: var(--color-text);
+.closeBtn:hover {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
 }
 
-.drawerContent {
+[data-theme="dark"] .closeBtn:hover {
+  background: var(--color-border-dark);
+}
+
+.panelContent {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-xs);
+  padding: 4px;
 }
 
-.commandItem {
+.panelItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.panelItem:hover {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .panelItem:hover {
+  background: var(--color-border-dark);
+}
+
+.panelItemText {
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  gap: 1px;
+  min-width: 0;
+}
+
+.cmdName {
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.cmdDesc {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================
+   查找替换面板（右侧边栏内）
+   ============================================ */
+.findPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 4px;
+}
+
+.findPanelSection {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.findPanelRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.findScopeLabel {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  padding: 2px 4px;
   background: var(--color-bg-light);
   border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-  cursor: pointer;
-  margin-bottom: var(--spacing-xs);
+  border: 1px solid var(--color-border-light);
+  white-space: nowrap;
 }
 
-.commandItem:hover {
-  background: var(--color-border-light);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-subtle);
+[data-theme="dark"] .findScopeLabel {
+  background: var(--color-bg-dark);
+  border-color: var(--color-border-dark);
 }
 
-.commandItem:active {
-  transform: translateY(0);
+.findInputWrap {
+  flex: 1;
+  min-width: 0;
 }
 
-.commandName {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-.commandDesc {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  margin-top: var(--spacing-2xs);
-}
-
-.settingGroup {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.settingLabel {
-  display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-text);
-  margin-bottom: var(--spacing-xs);
-}
-
-.settingSelect {
+.findInput {
   width: 100%;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  height: 28px;
+  padding: 0 8px;
   font-size: 12px;
-  color: var(--color-text);
+  font-family: var(--font-mono);
+  color: var(--color-text-primary);
   background: var(--color-bg-light);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-light);
   border-radius: var(--radius-sm);
   outline: none;
-  cursor: pointer;
+  transition: border-color var(--transition-fast);
+  box-sizing: border-box;
 }
 
-.settingSelect:focus {
+.findInput:focus {
   border-color: var(--color-primary);
+}
+
+[data-theme="dark"] .findInput {
+  background: var(--color-bg-dark);
+  border-color: var(--color-border-dark);
+}
+
+.findCount {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  min-width: 36px;
+  text-align: center;
+  user-select: none;
+}
+
+.findNavBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.findNavBtn:hover:not(:disabled) {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+.findNavBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.findToggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.findToggleBtn:hover {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+.findToggleActive {
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
+  color: var(--color-primary) !important;
+}
+
+.replaceBtn {
+  flex: 1;
+  padding: 5px 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.replaceBtn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.replaceBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 查找结果列表 */
+.findResultList {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+  border-top: 1px solid var(--color-border-light);
+  padding-top: 6px;
+}
+
+[data-theme="dark"] .findResultList {
+  border-top-color: var(--color-border-dark);
+}
+
+.findResultHeader {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  padding: 0 4px 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.findResultItem {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.findResultItem:hover {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .findResultItem:hover {
+  background: var(--color-border-dark);
+}
+
+.findResultLine {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-primary);
+  min-width: 22px;
+}
+
+.findResultText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text-secondary);
+}
+
+/* 查找结果中匹配文本高亮 */
+.findMatchHighlight {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* 高级选项：文件过滤 */
+.findAdvancedSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 4px;
+  border-top: 1px solid var(--color-border-light);
+  margin-top: 4px;
+}
+
+[data-theme="dark"] .findAdvancedSection {
+  border-top-color: var(--color-border-dark);
+}
+
+.findAdvancedIcon {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.findAdvancedLabel {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.findAdvancedInput {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-primary);
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.findAdvancedInput:focus {
+  border-color: var(--color-primary);
+}
+
+[data-theme="dark"] .findAdvancedInput {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+.findScopeHint {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* 命令/模板通用面板 */
+.commandsPanel {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================
+   设置面板
+   ============================================ */
+.settingsPanel {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 4px;
+  gap: 12px;
+}
+
+.settingsGroup {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .settingsGroup {
+  background: var(--color-bg-dark);
+  border-color: var(--color-border-dark);
+}
+
+.settingsGroupHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--color-border-light);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+[data-theme="dark"] .settingsGroupHeader {
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom-color: var(--color-border-dark);
+  color: var(--color-text-secondary);
+}
+
+.settingsGroupIcon {
+  display: flex;
+  align-items: center;
+  color: var(--color-primary);
 }
 
 .settingRow {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.settingBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  background: var(--color-bg-light);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.settingBtn:hover {
-  background: var(--color-border-light);
-}
-
-.settingValue {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text);
-  min-width: 40px;
-  text-align: center;
-}
-
-.settingToggle {
-  padding: var(--spacing-xs) var(--spacing-md);
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-light);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.settingToggle:hover {
-  background: var(--color-border-light);
-}
-
-.settingToggleOn {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-  background: rgba(37, 99, 235, 0.05);
-}
-
-.statusBar {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: var(--color-bg-elevated);
-  border-top: 1px solid var(--color-border);
-  height: 24px;
-  flex-shrink: 0;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background var(--transition-fast);
+}
+
+.settingRow:last-child {
+  border-bottom: none;
+}
+
+.settingRow:hover {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .settingRow {
+  border-bottom-color: var(--color-border-dark);
+}
+
+[data-theme="dark"] .settingRow:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.settingRow label {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  font-weight: 500;
+  color: var(--color-text-primary);
 }
 
-.statusBarLeft {
+.settingControl {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 4px;
 }
 
-.statusBarRight {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.statusItem {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2xs);
-}
-
-.zoomButton {
+.settingControl button {
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.settingControl button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-bg-light);
+}
+
+[data-theme="dark"] .settingControl button {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+[data-theme="dark"] .settingControl button:hover {
+  background: var(--color-bg-dark);
+  border-color: var(--color-primary);
+}
+
+.settingControl span {
+  font-size: 12px;
+  min-width: 28px;
+  text-align: center;
+  font-family: var(--font-mono);
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.settingRow select {
+  padding: 4px 24px 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 12px;
+}
+
+.settingRow select:hover {
+  border-color: var(--color-primary);
+}
+
+.settingRow select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+[data-theme="dark"] .settingRow select {
+  background-color: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 12px;
+}
+
+[data-theme="dark"] .settingRow select option {
+  background: var(--color-card-dark);
+  color: var(--color-text-dark);
+}
+
+/* Toggle Switch 开关 */
+.toggle {
+  position: relative;
+  width: 36px;
   height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.toggleOn {
+  background: var(--color-primary);
+  justify-content: flex-end;
+}
+
+.toggleOff {
+  background: var(--color-border-light);
+  justify-content: flex-start;
+}
+
+[data-theme="dark"] .toggleOff {
+  background: var(--color-border-dark);
+}
+
+.toggleThumb {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  margin: 0 2px;
+}
+
+[data-theme="dark"] .toggleThumb {
+  background: #e2e8f0;
+}
+
+.settingsHint {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  padding: 4px 12px 8px;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+.settingsReset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--color-text-secondary);
   background: transparent;
-  border: none;
-  border-radius: var(--radius-xs);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin: 0 12px 8px;
+}
+
+.settingsReset:hover {
+  color: var(--color-error);
+  border-color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 8%, transparent);
+}
+
+[data-theme="dark"] .settingsReset {
+  border-color: var(--color-border-dark);
+}
+
+/* ============================================
+   欢迎页
+   ============================================ */
+.welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+  gap: 16px;
+}
+
+.welcomeIcon {
+  color: var(--color-primary);
+  opacity: 0.5;
+}
+
+.welcome h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.welcome p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.welcomeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.welcomeBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.zoomButton:hover {
+.welcomeBtn:hover {
+  border-color: var(--color-primary);
   background: var(--color-bg-light);
-  color: var(--color-text);
 }
 
-.zoomLevel {
-  min-width: 35px;
-  text-align: center;
-  color: var(--color-text);
-  font-weight: 500;
+[data-theme="dark"] .welcomeBtn {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
 }
 
-.statusBarDivider {
-  width: 1px;
-  height: 16px;
-  background: var(--color-border);
-  margin: 0 var(--spacing-xs);
+.welcomeShortcuts {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.welcomeShortcuts kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================
+   移动端适配
+   ============================================ */
+@media (max-width: 768px) {
+  .fileHeader {
+    height: 24px;
+    padding: 0 8px;
+  }
+
+  .fileName {
+    max-width: 100px;
+    font-size: 10px;
+  }
+
+  .langTag {
+    display: none;
+  }
+
+  /* 移动端隐藏拖拽手柄 */
+  .resizeHandle {
+    display: none;
+  }
+
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    border: none;
+  }
+
+  .modalOverlay {
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .modalHeader {
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+
+  /* 侧边栏在移动端变为绝对定位浮层 */
+  .sidePanel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-elevated);
+    width: 260px !important;
+  }
+
+  .terminal {
+    height: 140px;
+  }
+
+  .terminalHeader {
+    height: 34px;
+  }
+
+  .terminalTab {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  .welcomeActions {
+    flex-direction: column;
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .welcomeBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .welcomeShortcuts {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .fileHeader {
+    height: 28px;
+  }
+
+  .fileName {
+    max-width: 80px;
+    font-size: 10px;
+  }
+
+  .sidePanel {
+    width: calc(100vw - 32px) !important;
+    max-width: 280px;
+  }
+
+  .terminal {
+    height: 120px;
+  }
+
+  .settingRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .settingRow label {
+    font-size: 14px;
+  }
 }

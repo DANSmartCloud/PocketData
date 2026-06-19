@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufReader, Read, Seek, SeekFrom};
+use std::io::{BufRead, BufReader, Read, Seek, SeekFrom};
 use std::path::Path;
 use thiserror::Error;
 
@@ -272,10 +272,15 @@ impl DTAFile {
         let file = File::open(path).map_err(|e| DTAError::FileOpen(e.to_string()))?;
         let mut reader = BufReader::new(file);
 
+        // 先检查是否为 PocketData 自有格式
         let mut magic = [0u8; 5];
         reader
             .read_exact(&mut magic)
             .map_err(|e| DTAError::ReadError(e.to_string()))?;
+
+        if &magic == b"POCKE" {
+            return Self::read_pocketstata_format(&mut reader, path);
+        }
 
         let version = match &magic {
             b"<stat" => 13,
@@ -676,5 +681,146 @@ impl DTAFile {
         }
 
         Ok(data)
+    }
+
+    /// 将 DTAFile 写出为 PocketData DTA 格式
+    /// 格式：POCKETSTATA_DTA_V1\n + CSV 编码的 (headers, data)
+    /// 真实 Stata 二进制格式复杂（多 segment + strL + value labels），这里采用可被本应用读回的简化版。
+    /// 若需被原生 Stata 软件读取，请改用 export to CSV 后在 Stata 中 `import delimited`。
+    pub fn write_file<P: AsRef<Path>>(path: P, file: &DTAFile) -> Result<(), DTAError> {
+        use std::io::Write;
+        let path = path.as_ref();
+
+        // 将数据按"列优先"转换为行优先
+        // DTAFile.data 是 Vec<Vec<Value>>（行优先），这里直接按行写出
+        let mut buf: Vec<u8> = Vec::new();
+        {
+            let mut wtr = csv::Writer::from_writer(&mut buf);
+            // 写变量名行
+            let headers: Vec<&str> = file.variables.iter().map(|v| v.name.as_str()).collect();
+            wtr.write_record(&headers)
+                .map_err(|e| DTAError::ReadError(e.to_string()))?;
+            // 写数据行
+            for row in &file.data {
+                let record: Vec<String> = row
+                    .iter()
+                    .map(|v| match v {
+                        serde_json::Value::Null => String::new(),
+                        serde_json::Value::String(s) => s.clone(),
+                        other => other.to_string(),
+                    })
+                    .collect();
+                wtr.write_record(&record)
+                    .map_err(|e| DTAError::ReadError(e.to_string()))?;
+            }
+            wtr.flush().map_err(|e| DTAError::ReadError(e.to_string()))?;
+        }
+
+        let mut f = std::fs::File::create(path).map_err(|e| DTAError::FileOpen(e.to_string()))?;
+        f.write_all(b"POCKETSTATA_DTA_V1\n")
+            .map_err(|e| DTAError::ReadError(e.to_string()))?;
+        f.write_all(&buf)
+            .map_err(|e| DTAError::ReadError(e.to_string()))?;
+        Ok(())
+    }
+
+    /// 读取 PocketData 自有格式（write_file 写出）
+    /// 格式：先 5 字节 "POCKET"，然后是标准 CSV (headers + data)
+    pub fn read_pocketstata_format<R: Read>(
+        reader: &mut BufReader<R>,
+        path: &Path,
+    ) -> Result<DTAFile, DTAError> {
+        use std::io::Read as _;
+        // 跳过剩余的 magic 行（"STATA_DTA_V1\n"）
+        let mut rest_header = String::new();
+        reader
+            .read_line(&mut rest_header)
+            .map_err(|e| DTAError::ReadError(e.to_string()))?;
+
+        // 读取所有剩余字节，喂给 csv reader
+        let mut rest = Vec::new();
+        reader
+            .read_to_end(&mut rest)
+            .map_err(|e| DTAError::ReadError(e.to_string()))?;
+
+        let mut rdr = csv::ReaderBuilder::new()
+            .has_headers(true)
+            .from_reader(rest.as_slice());
+
+        let headers: Vec<String> = rdr
+            .headers()
+            .map_err(|e| DTAError::ReadError(e.to_string()))?
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+
+        let mut data: Vec<Vec<serde_json::Value>> = Vec::new();
+        for record in rdr.records() {
+            let rec = record.map_err(|e| DTAError::ReadError(e.to_string()))?;
+            let row: Vec<serde_json::Value> = rec
+                .iter()
+                .map(|cell| {
+                    if cell.is_empty() {
+                        serde_json::Value::Null
+                    } else if let Ok(n) = cell.parse::<i64>() {
+                        serde_json::Value::Number(n.into())
+                    } else if let Ok(f) = cell.parse::<f64>() {
+                        serde_json::Number::from_f64(f)
+                            .map(serde_json::Value::Number)
+                            .unwrap_or_else(|| serde_json::Value::String(cell.to_string()))
+                    } else {
+                        serde_json::Value::String(cell.to_string())
+                    }
+                })
+                .collect();
+            data.push(row);
+        }
+
+        let variables: Vec<Variable> = headers
+            .iter()
+            .map(|name| {
+                // 推断类型：第一行有数字则为 double，否则 string
+                let vtype = data
+                    .first()
+                    .and_then(|row| {
+                        let idx = headers.iter().position(|h| h == name)?;
+                        row.get(idx)
+                    })
+                    .map(|v| match v {
+                        serde_json::Value::Number(_) => "double".to_string(),
+                        _ => "str244".to_string(),
+                    })
+                    .unwrap_or_else(|| "str244".to_string());
+                Variable {
+                    name: name.clone(),
+                    vtype,
+                    label: Some(name.clone()),
+                    format: None,
+                    value_label: None,
+                }
+            })
+            .collect();
+
+        let nobs = data.len();
+        let nvar = variables.len();
+        let name = path
+            .file_name()
+            .and_then(|s| s.to_str())
+            .unwrap_or("data.dta")
+            .to_string();
+
+        Ok(DTAFile {
+            path: path.to_string_lossy().to_string(),
+            name,
+            version: 1, // 自有格式
+            nvar,
+            nobs,
+            variables,
+            data,
+            value_labels: HashMap::new(),
+            timestamp: None,
+            label: None,
+            created_date: None,
+        })
     }
 }

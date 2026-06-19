@@ -1,0 +1,126 @@
+.rightPanel {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-card-light);
+  border-left: 1px solid var(--color-border-light);
+  font-family: var(--app-font);
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.app[data-theme="dark"] .rightPanel {
+  background: var(--color-card-dark);
+  border-left-color: var(--color-border-dark);
+}
+
+.tabBar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg-light);
+}
+
+.app[data-theme="dark"] .tabBar {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom-color: var(--color-border-dark);
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+  position: relative;
+}
+
+.tab:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--color-text-light);
+}
+
+.app[data-theme="dark"] .tab:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-dark);
+}
+
+.tabActive {
+  color: var(--color-primary);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.tabActive:hover {
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent) !important;
+  color: var(--color-primary) !important;
+}
+
+/* 底部条形指示器 - 圆角高亮，带动画（与全站统一） */
+.tabActive::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -1px;
+  height: 3px;
+  background: var(--color-primary);
+  border-radius: 2px;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-primary) 50%, transparent);
+  animation: rightPanelTabIndicatorIn 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+@keyframes rightPanelTabIndicatorIn {
+  from {
+    transform: scaleX(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.closeBtn {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-text-light);
+}
+
+.app[data-theme="dark"] .closeBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-dark);
+}
+
+.tabContent {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}

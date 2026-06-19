@@ -4,9 +4,23 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PocketStata - 口袋Stata</title>
-    <script type="module" crossorigin src="/assets/index-BueH7pu0.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Cs5TOUfJ.css">
+    <title>PocketData - 口袋数据</title>
+    <script>
+      // 尽早把 data-theme 同步到 <html>，确保 Portal 到 body 的弹层
+      // （如 FloatingDropdown 模型下拉菜单）在首次加载时也能匹配深色主题
+      (function () {
+        try {
+          var saved = localStorage.getItem('pocketdata-theme');
+          var theme = saved || 'system';
+          var resolved = theme === 'system'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : theme;
+          document.documentElement.setAttribute('data-theme', resolved);
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-BPtcYwUm.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CjERnNcf.css">
   </head>
   <body>
     <div id="root"></div>

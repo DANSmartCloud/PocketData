@@ -210,3 +210,71 @@ impl ExcelReader {
         }
     }
 }
+
+/// 简单 XLSX 写出：使用 rust_xlsxwriter
+pub fn write_xlsx_file<P: AsRef<Path>>(
+    path: P,
+    sheet_name: &str,
+    variables: &[String],
+    data: &[Vec<serde_json::Value>],
+) -> Result<(), ExcelError> {
+    use rust_xlsxwriter::{Format, Workbook};
+
+    let mut workbook = Workbook::new();
+    let header_format = Format::new()
+        .set_bold()
+        .set_background_color("#2563eb")
+        .set_font_color("#ffffff");
+
+    let sheet = workbook.add_worksheet();
+    sheet.set_name(sheet_name).map_err(|e| ExcelError::ParseError(e.to_string()))?;
+
+    // 写表头
+    for (col_idx, var_name) in variables.iter().enumerate() {
+        sheet
+            .write_string_with_format(0, col_idx as u16, var_name, &header_format)
+            .map_err(|e| ExcelError::ParseError(e.to_string()))?;
+    }
+
+    // 写数据
+    for (row_idx, row) in data.iter().enumerate() {
+        let excel_row = (row_idx + 1) as u32;
+        for (col_idx, value) in row.iter().enumerate() {
+            let col = col_idx as u16;
+            match value {
+                serde_json::Value::Null => {}
+                serde_json::Value::Bool(b) => {
+                    sheet
+                        .write_boolean(excel_row, col, *b)
+                        .map_err(|e| ExcelError::ParseError(e.to_string()))?;
+                }
+                serde_json::Value::Number(n) => {
+                    if let Some(int_val) = n.as_i64() {
+                        sheet
+                            .write_number(excel_row, col, int_val as f64)
+                            .map_err(|e| ExcelError::ParseError(e.to_string()))?;
+                    } else if let Some(f) = n.as_f64() {
+                        sheet
+                            .write_number(excel_row, col, f)
+                            .map_err(|e| ExcelError::ParseError(e.to_string()))?;
+                    }
+                }
+                serde_json::Value::String(s) => {
+                    sheet
+                        .write_string(excel_row, col, s)
+                        .map_err(|e| ExcelError::ParseError(e.to_string()))?;
+                }
+                other => {
+                    sheet
+                        .write_string(excel_row, col, other.to_string())
+                        .map_err(|e| ExcelError::ParseError(e.to_string()))?;
+                }
+            }
+        }
+    }
+
+    workbook
+        .save(path.as_ref())
+        .map_err(|e| ExcelError::ParseError(e.to_string()))?;
+    Ok(())
+}

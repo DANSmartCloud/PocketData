@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { FolderOpen, Save, Search, PanelLeft, Highlighter, Eraser, Download, Moon, Sun, MoreHorizontal, FileSpreadsheet, FileText, Database } from "lucide-react";
+import { useShallow } from "zustand/react/shallow";
+import { FolderOpen, Save, Search, PanelLeft, Highlighter, Eraser, Download, Moon, Sun, MoreHorizontal, FileSpreadsheet, FileText, Database, Undo2, Redo2, FolderTree, Play, Square, PanelRight } from "lucide-react";
 import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
 import { useFileOperations } from "@/hooks/useFileOperations";
+import { useNotify } from "@/hooks/useNotify";
+import { formatShortcut } from "@/utils/platformShortcut";
 import styles from "./Toolbar.module.css";
 
 const HIGHLIGHT_COLORS = [
@@ -16,15 +19,58 @@ const HIGHLIGHT_COLORS = [
   { color: "#ccfbf1", label: "青色" },
 ];
 
+interface ScriptExecutionState {
+  isExecuting: boolean;
+  outputCount: number;
+  errorCount: number;
+}
+
 interface ToolbarProps {
   onOpenFile: () => void;
   onToggleSidebar?: () => void;
 }
 
 export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
-  const { getActiveFile } = useFileStore();
-  const { theme, setTheme, selectedCell, highlightedCells, addHighlightedCell, removeHighlightedCell, clearHighlightedCells } = useUIStore();
-  const { handleSaveFile, handleExportFile } = useFileOperations();
+  const { getActiveFile, undo, redo, canUndo, canRedo } = useFileStore();
+  const { theme, setTheme, selectedCell, highlightedCells, addHighlightedCell, removeHighlightedCell, clearHighlightedCells, searchQuery, setSearchQuery } = useUIStore();
+  const { handleExportFile, handleOpenProject, handleSaveFile } = useFileOperations();
+
+  // 当前是否为脚本编辑模式
+  const isScriptMode = useFileStore(useShallow(s => {
+    const tab = s.tabs.find(t => t.id === s.activeTabId);
+    return tab?.type === 'script';
+  }));
+  const isMarkdownMode = useFileStore(useShallow(s => {
+    const tab = s.tabs.find(t => t.id === s.activeTabId);
+    return tab?.type === 'markdown';
+  }));
+  const notify = useNotify();
+
+  // Script execution state (received from CodeEditor via CustomEvent)
+  const [scriptState, setScriptState] = useState<ScriptExecutionState>({
+    isExecuting: false,
+    outputCount: 0,
+    errorCount: 0,
+  });
+
+  // Listen for script state changes from CodeEditor
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setScriptState({
+        isExecuting: detail.isExecuting ?? false,
+        outputCount: detail.outputCount ?? 0,
+        errorCount: detail.errorCount ?? 0,
+      });
+    };
+    window.addEventListener('pocketdata:script-state-change', handler);
+    return () => window.removeEventListener('pocketdata:script-state-change', handler);
+  }, []);
+
+  // Dispatch script actions to CodeEditor
+  const dispatchScriptEvent = (eventName: string) => {
+    window.dispatchEvent(new CustomEvent(eventName));
+  };
 
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [isColorPickerClosing, setIsColorPickerClosing] = useState(false);
@@ -62,7 +108,6 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
   };
 
   const activeFile = getActiveFile();
-  const isDirty = activeFile?.isDirty || false;
 
   // 检测哪些按钮应该被折叠
   useEffect(() => {
@@ -124,6 +169,43 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
     toggleWithAnimation(true, setShowColorPicker, setIsColorPickerClosing, 150);
   };
 
+  // 搜索处理
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim().length > 0) {
+      if (isScriptMode) {
+        // 代码模式：通过 CustomEvent 通知 CodeEditor
+        window.dispatchEvent(new CustomEvent('pocketdata:search-script', { detail: { query } }));
+        return;
+      }
+      if (activeFile) {
+        // 查找第一个匹配项
+        const q = query.toLowerCase();
+        let foundCount = 0;
+        for (let r = 0; r < activeFile.data.length; r++) {
+          const row = activeFile.data[r];
+          for (let c = 0; c < activeFile.variables.length; c++) {
+            const v = row[activeFile.variables[c].name];
+            if (String(v ?? '').toLowerCase().includes(q)) {
+              foundCount++;
+              if (foundCount === 1) {
+                useUIStore.setState({
+                  selectedCell: { row: r, col: c },
+                  selectionRange: { start: { row: r, col: c }, end: { row: r, col: c } }
+                });
+              }
+            }
+          }
+        }
+        if (foundCount > 0) {
+          notify('success', `找到 ${foundCount} 个匹配项`, 2000);
+        } else {
+          notify('warning', '未找到匹配项', 2000);
+        }
+      }
+    }
+  };
+
   // 处理导出
   const handleExport = (format: 'dta' | 'csv' | 'xlsx') => {
     toggleWithAnimation(true, setShowExportMenu, setIsExportMenuClosing, 100);
@@ -157,6 +239,23 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showColorPicker, showExportMenu]);
 
+  // 监听菜单"查找"/"替换"事件 → 聚焦搜索框
+  useEffect(() => {
+    const handler = () => {
+      // 窄屏下展开移动搜索栏
+      if (window.innerWidth <= 768) {
+        if (showMoreTools) toggleWithAnimation(true, setShowMoreTools, setIsMoreToolsClosing, 200);
+        if (!showSearchBar) setShowSearchBar(true);
+        setTimeout(() => searchInputRef.current?.focus(), 250);
+      } else {
+        // 桌面端直接聚焦
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('pocketdata:focus-search', handler);
+    return () => window.removeEventListener('pocketdata:focus-search', handler);
+  }, [showSearchBar, showMoreTools]);
+
   // 判断按钮是否在溢出列表中
   const isOverflow = (item: string) => overflowItems.includes(item);
 
@@ -174,13 +273,46 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
               <PanelLeft size={18} />
             </button>
           )}
-          <button className={styles.btn} onClick={onOpenFile} title="打开文件 (Ctrl+O)">
+          <button className={styles.btn} onClick={onOpenFile} title={`打开文件 (${formatShortcut("Ctrl+O")})`}>
             <FolderOpen size={18} />
-            <span className={styles.btnText}>打开</span>
           </button>
-          <button className={styles.btn} disabled={!activeFile || !isDirty} onClick={handleSaveFile} title="保存 (Ctrl+S)">
-            <Save size={18} />
-            <span className={styles.btnText}>保存</span>
+          <button className={styles.iconBtn} onClick={handleOpenProject} title={`打开项目 (${formatShortcut("Ctrl+Shift+O")})`}>
+            <FolderTree size={18} />
+          </button>
+          {/* 保存按钮：所有模式均显示在工具栏上（仅一个） */}
+          {isScriptMode ? (
+            <button
+              className={styles.iconBtn}
+              onClick={() => dispatchScriptEvent('pocketdata:script-save')}
+              data-item="script-save"
+              title={`保存 (${formatShortcut("Ctrl+S")})`}
+            >
+              <Save size={18} />
+            </button>
+          ) : isMarkdownMode ? (
+            <button
+              className={styles.iconBtn}
+              onClick={() => dispatchScriptEvent('pocketdata:markdown-save')}
+              data-item="markdown-save"
+              title={`保存 (${formatShortcut("Ctrl+S")})`}
+            >
+              <Save size={18} />
+            </button>
+          ) : activeFile ? (
+            <button
+              className={styles.iconBtn}
+              onClick={() => void handleSaveFile()}
+              data-item="data-save"
+              title={`保存 (${formatShortcut("Ctrl+S")})`}
+            >
+              <Save size={18} />
+            </button>
+          ) : null}
+          <button className={styles.iconBtn} disabled={!canUndo()} onClick={() => undo()} title={`撤销 (${formatShortcut("Ctrl+Z")})`}>
+            <Undo2 size={18} />
+          </button>
+          <button className={styles.iconBtn} disabled={!canRedo()} onClick={() => redo()} title={`重做 (${formatShortcut("Ctrl+Y")})`}>
+            <Redo2 size={18} />
           </button>
         </div>
         <div className={styles.divider} />
@@ -219,8 +351,36 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
             </button>
           </div>
         </div>
+
+        {/* 代码编辑模式按钮组 */}
+        {isScriptMode && (
+          <>
+            <div className={styles.divider} />
+            <div className={styles.group}>
+              <button
+                className={`${styles.scriptRunBtn} ${scriptState.isExecuting ? styles.scriptRunBtnRunning : ''}`}
+                onClick={() => dispatchScriptEvent('pocketdata:script-run')}
+                title={scriptState.isExecuting ? "停止 (Esc)" : "执行 (F5 / Ctrl+Enter)"}
+              >
+                {scriptState.isExecuting ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}
+                <span className={styles.scriptBtnText}>{scriptState.isExecuting ? '停止' : '运行'}</span>
+              </button>
+            </div>
+          </>
+        )}
+
         <div className={styles.spacer} />
         <div className={styles.group}>
+          {/* 代码编辑器右侧边栏按钮靠右 - 跟随其他右侧操作 */}
+          {isScriptMode && (
+            <button
+              className={styles.iconBtn}
+              onClick={() => dispatchScriptEvent('pocketdata:script-toggle-side-panel')}
+              title="侧边栏 (查找/替换/命令/模板/设置)"
+            >
+              <PanelRight size={16} />
+            </button>
+          )}
           <button
             className={styles.iconBtn}
             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
@@ -228,18 +388,6 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
           >
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
-        </div>
-        <div className={styles.divider} />
-        <div className={styles.group}>
-          <div className={styles.searchWrapper}>
-            <Search size={16} className={styles.searchIcon} />
-            <input
-              type="text"
-              className={styles.searchInput}
-              placeholder="搜索..."
-              disabled={!activeFile}
-            />
-          </div>
         </div>
       </div>
 
@@ -255,62 +403,102 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
           <button className={styles.iconBtn} onClick={onOpenFile} title="打开">
             <FolderOpen size={18} />
           </button>
-          <button className={styles.iconBtn} disabled={!activeFile || !isDirty} onClick={handleSaveFile} title="保存">
-            <Save size={18} />
-          </button>
+          
+          {/* 脚本模式：移动端常显运行和保存按钮 */}
+          {isScriptMode && (
+            <>
+              <button
+                className={`${styles.scriptMobileRunBtn} ${scriptState.isExecuting ? styles.scriptMobileRunBtnRunning : ''}`}
+                onClick={() => dispatchScriptEvent('pocketdata:script-run')}
+                title={scriptState.isExecuting ? "停止" : "运行"}
+              >
+                {scriptState.isExecuting ? <Square size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
+              </button>
+            </>
+          )}
         </div>
 
         {/* 中间可折叠区域 */}
         <div className={styles.mobileCenter}>
-          {/* 高亮按钮 */}
-          {!isOverflow('highlight') && (
-            <button
-              className={`${styles.iconBtn} ${selectedCell && highlightedCells.some(h => h.row === selectedCell.row && h.col === selectedCell.col) ? styles.active : ""}`}
-              onClick={() => toggleWithAnimation(showColorPicker, setShowColorPicker, setIsColorPickerClosing, 150)}
-              disabled={!selectedCell}
-              data-item="highlight"
-              title="高亮"
-            >
-              <Highlighter size={18} />
-            </button>
+          {!isScriptMode && (
+            <>
+              {/* 高亮按钮 */}
+              {!isOverflow('highlight') && (
+                <button
+                  className={`${styles.iconBtn} ${selectedCell && highlightedCells.some(h => h.row === selectedCell.row && h.col === selectedCell.col) ? styles.active : ""}`}
+                  onClick={() => toggleWithAnimation(showColorPicker, setShowColorPicker, setIsColorPickerClosing, 150)}
+                  disabled={!selectedCell}
+                  data-item="highlight"
+                  title="高亮"
+                >
+                  <Highlighter size={18} />
+                </button>
+              )}
+              
+              {/* 清除按钮 */}
+              {!isOverflow('clear') && (
+                <button 
+                  className={styles.iconBtn}
+                  onClick={handleClearHighlights}
+                  disabled={highlightedCells.length === 0}
+                  data-item="clear"
+                  title="清除"
+                >
+                  <Eraser size={18} />
+                </button>
+              )}
+              
+              {/* 导出按钮 */}
+              {!isOverflow('export') && (
+                <button
+                  className={styles.iconBtn}
+                  onClick={() => toggleWithAnimation(showExportMenu, setShowExportMenu, setIsExportMenuClosing, 100)}
+                  disabled={!activeFile}
+                  data-item="export"
+                  title="导出"
+                >
+                  <Download size={18} />
+                </button>
+              )}
+              
+              {/* 主题按钮 */}
+              {!isOverflow('theme') && (
+                <button 
+                  className={styles.iconBtn}
+                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                  data-item="theme"
+                  title="主题"
+                >
+                  {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+                </button>
+              )}
+            </>
           )}
-          
-          {/* 清除按钮 */}
-          {!isOverflow('clear') && (
-            <button 
-              className={styles.iconBtn}
-              onClick={handleClearHighlights}
-              disabled={highlightedCells.length === 0}
-              data-item="clear"
-              title="清除"
-            >
-              <Eraser size={18} />
-            </button>
-          )}
-          
-          {/* 导出按钮 */}
-          {!isOverflow('export') && (
-            <button
-              className={styles.iconBtn}
-              onClick={() => toggleWithAnimation(showExportMenu, setShowExportMenu, setIsExportMenuClosing, 100)}
-              disabled={!activeFile}
-              data-item="export"
-              title="导出"
-            >
-              <Download size={18} />
-            </button>
-          )}
-          
-          {/* 主题按钮 */}
-          {!isOverflow('theme') && (
-            <button 
-              className={styles.iconBtn}
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              data-item="theme"
-              title="主题"
-            >
-              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-            </button>
+
+          {/* 脚本模式：移动端脚本按钮在中间区域 */}
+          {isScriptMode && (
+            <>
+              {!isOverflow('script-save') && (
+                <button
+                  className={styles.iconBtn}
+                  onClick={() => dispatchScriptEvent('pocketdata:script-save')}
+                  data-item="script-save"
+                  title="保存"
+                >
+                  <Save size={18} />
+                </button>
+              )}
+              {!isOverflow('script-side-panel') && (
+                <button
+                  className={styles.iconBtn}
+                  onClick={() => dispatchScriptEvent('pocketdata:script-toggle-side-panel')}
+                  data-item="script-side-panel"
+                  title="侧边栏"
+                >
+                  <PanelRight size={18} />
+                </button>
+              )}
+            </>
           )}
         </div>
 
@@ -346,7 +534,7 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
               }
             }}
             title="搜索"
-            disabled={!activeFile}
+            disabled={!activeFile && !isScriptMode}
           >
             <Search size={18} />
           </button>
@@ -395,6 +583,25 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
               <span>主题</span>
             </button>
           )}
+          {/* 脚本模式溢出按钮 */}
+          {overflowItems.includes('script-save') && (
+            <button
+              className={styles.mobileMoreItem}
+              onClick={() => { dispatchScriptEvent('pocketdata:script-save'); toggleWithAnimation(true, setShowMoreTools, setIsMoreToolsClosing, 200); }}
+            >
+              <Save size={18} />
+              <span>保存</span>
+            </button>
+          )}
+          {overflowItems.includes('script-side-panel') && (
+            <button
+              className={styles.mobileMoreItem}
+              onClick={() => { dispatchScriptEvent('pocketdata:script-toggle-side-panel'); toggleWithAnimation(true, setShowMoreTools, setIsMoreToolsClosing, 200); }}
+            >
+              <PanelRight size={18} />
+              <span>侧边栏</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -407,13 +614,19 @@ export function Toolbar({ onOpenFile, onToggleSidebar }: ToolbarProps) {
               ref={searchInputRef}
               type="text"
               className={styles.mobileSearchInput}
-              placeholder="搜索数据..."
+              placeholder={isScriptMode ? "搜索脚本..." : "搜索数据..."}
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Escape') handleSearch(''); }}
               autoFocus
             />
           </div>
           <button
             className={styles.mobileSearchClose}
-            onClick={() => toggleWithAnimation(true, setShowSearchBar, setIsSearchBarClosing, 200)}
+            onClick={() => {
+              handleSearch('');
+              toggleWithAnimation(true, setShowSearchBar, setIsSearchBarClosing, 200);
+            }}
           >
             取消
           </button>

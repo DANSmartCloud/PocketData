@@ -1,13 +1,136 @@
 import { WebviewWindow, getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { emit, listen } from '@tauri-apps/api/event';
-import { DTAFile, Tab } from '@/stores/fileStore';
+import { DTAFile, ScriptFile, Tab } from '@/stores/fileStore';
+import type { TerminalSessionInfo } from '@/components/terminal/PowerShellTerminal';
 
 export const TAB_MIME_TYPE = 'application/x-pocketstata-tab';
+export const THEME_CHANGED_EVENT = 'theme:changed';
+
+/** 读取当前主题（从 localStorage） */
+function getCurrentTheme(): string {
+  try {
+    return localStorage.getItem('pocketdata-theme') || 'light';
+  } catch {
+    return 'light';
+  }
+}
+
+/**
+ * 窗口布局 & 部件状态快照。
+ * 用于在创建新窗口时把"父窗口的当前布局"传递过去，避免新窗口与父窗口视觉差异过大。
+ *
+ * - 仅同步显隐 / 尺寸 / 模式类状态，不同步任何文件/数据
+ * - 子窗口读取后会立即套用，从而保持窗口布局一致
+ */
+export interface WindowLayoutState {
+  theme?: 'light' | 'dark' | 'system';
+  operationMode?: 'stata' | 'excel';
+  sidebarCollapsed?: boolean;
+  sidebarWidth?: number;
+  terminalVisible?: boolean;
+  terminalHeight?: number;
+  rightPanelVisible?: boolean;
+  rightPanelTab?: string;
+  statusBarVisible?: boolean;
+  formulaBarVisible?: boolean;
+  outlineVisible?: boolean;
+}
+
+/**
+ * 读取当前 UI store 中的布局状态。
+ * 通过动态 import 避免在 stores 还未就绪时报错
+ */
+function getCurrentLayoutState(): WindowLayoutState {
+  try {
+    // 同步读取 uiStore 中持久化到 localStorage 的字段
+    const sidebarWidthStr = localStorage.getItem('pocketdata-sidebar-width');
+    const sidebarWidth = sidebarWidthStr ? parseInt(sidebarWidthStr, 10) : undefined;
+    const themeRaw = localStorage.getItem('pocketdata-theme') as 'light' | 'dark' | 'system' | null;
+    const modeRaw = localStorage.getItem('pocketdata-mode') as 'stata' | 'excel' | null;
+    return {
+      theme: themeRaw || undefined,
+      operationMode: modeRaw || undefined,
+      sidebarWidth: !isNaN(sidebarWidth || NaN) ? sidebarWidth : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * 从 uiStore 实时收集窗口布局状态。
+ * 调用时机应在 App 已挂载、store 完全初始化之后。
+ */
+export function snapshotCurrentLayout(): WindowLayoutState {
+  try {
+    // 同步 require 是不可用的，使用 cached getter
+    const ui = (window as any).__pocketdata_ui_snapshot as (() => WindowLayoutState) | undefined;
+    if (ui) {
+      return ui();
+    }
+  } catch {}
+  return getCurrentLayoutState();
+}
+
+/**
+ * 注册一个能从 uiStore 实时读取布局状态的 getter。
+ * 供 App.tsx 在挂载时调用。
+ */
+let layoutSnapshotGetter: (() => WindowLayoutState) | null = null;
+export function registerLayoutSnapshotGetter(fn: () => WindowLayoutState): void {
+  layoutSnapshotGetter = fn;
+  (window as any).__pocketdata_ui_snapshot = fn;
+}
+
+/**
+ * 把布局状态附加到 URL 的查询参数中。
+ * 使用 base64 编码避免 JSON 中的引号/特殊字符问题。
+ */
+export function appendLayoutParam(baseUrl: string, layout?: WindowLayoutState): string {
+  // 实时合并布局状态
+  const live = layoutSnapshotGetter ? layoutSnapshotGetter() : getCurrentLayoutState();
+  const finalLayout: WindowLayoutState = {
+    theme: (getCurrentTheme() as WindowLayoutState['theme']) || 'light',
+    ...live,
+    ...(layout || {}),
+  };
+  try {
+    const json = JSON.stringify(finalLayout);
+    // 使用 encodeURIComponent 以保证 URL 安全
+    const encoded = btoa(unescape(encodeURIComponent(json)));
+    const sep = baseUrl.includes('?') ? '&' : '?';
+    return `${baseUrl}${sep}layout=${encoded}`;
+  } catch {
+    return baseUrl;
+  }
+}
+
+/**
+ * 从 URL 查询参数中解析布局状态。
+ * 由 App.tsx 在初始化时调用。
+ */
+export function parseLayoutFromUrl(search?: string): WindowLayoutState | null {
+  try {
+    const query = search ?? (typeof window !== 'undefined' ? window.location.search : '');
+    if (!query) return null;
+    const params = new URLSearchParams(query);
+    const layoutRaw = params.get('layout');
+    if (!layoutRaw) return null;
+    const json = decodeURIComponent(escape(atob(layoutRaw)));
+    const parsed = JSON.parse(json) as WindowLayoutState;
+    return parsed;
+  } catch (err) {
+    console.warn('[windowManager] Failed to parse layout from URL:', err);
+    return null;
+  }
+}
 
 export interface TabTransferData {
   tab: Tab;
-  file: DTAFile;
+  file: DTAFile | ScriptFile;
   sourceWindowLabel: string;
+  /** 终端会话信息（用于标签页分离/合并时转移终端） */
+  terminalSessions?: TerminalSessionInfo[];
 }
 
 export interface WindowCreatedEvent {
@@ -16,13 +139,13 @@ export interface WindowCreatedEvent {
 
 export interface TabReceivedEvent {
   tab: Tab;
-  file: DTAFile;
+  file: DTAFile | ScriptFile;
   insertIndex?: number;
 }
 
 export interface DragTakeoverData {
   tab: Tab;
-  file: DTAFile;
+  file: DTAFile | ScriptFile;
   mouseX: number;
   mouseY: number;
   mouseInTabX: number;
@@ -34,6 +157,7 @@ export interface DragTakeoverData {
   tabWidth: number;
   tabHeight: number;
   sourceWindowLabel: string;
+  terminalSessions?: TerminalSessionInfo[];
 }
 
 export interface DragTakeoverEvent extends DragTakeoverData {
@@ -108,7 +232,7 @@ export async function updateDragPreviewWindow(
 export async function convertPreviewToWindow(
   previewWindow: WebviewWindow,
   tab: Tab,
-  file: DTAFile
+  file: DTAFile | ScriptFile
 ): Promise<WebviewWindow | null> {
   try {
     const windowLabel = `window-${Date.now()}-${++windowCounter}`;
@@ -118,15 +242,17 @@ export async function convertPreviewToWindow(
     await previewWindow.close();
     
     // 创建正式窗口
-    // 在开发模式下使用完整的 devUrl
+    // 在开发模式下使用完整的 devUrl，并附带布局状态 + 主题参数
     const isDev = import.meta.env.DEV;
-    const windowUrl = isDev ? 'http://localhost:1420' : '/';
+    const baseUrl = isDev ? 'http://localhost:1420' : '/';
+    // 优先用 appendLayoutParam（已包含主题），避免重复
+    const windowUrl = appendLayoutParam(baseUrl);
     
     console.log('[windowManager] Creating window with URL:', windowUrl, 'isDev:', isDev);
     
     const newWindow = new WebviewWindow(windowLabel, {
       url: windowUrl,
-      title: 'PocketStata - 口袋Stata',
+      title: 'PocketData - 口袋数据',
       width: 1200,
       height: 800,
       minWidth: 800,
@@ -163,7 +289,7 @@ export async function convertPreviewToWindow(
  */
 export async function createNewWindow(
   tab?: Tab, 
-  file?: DTAFile,
+  file?: DTAFile | ScriptFile,
   position?: { x: number; y: number }
 ): Promise<WebviewWindow | null> {
   console.log('[windowManager] createNewWindow called:', { tab: tab?.title, file: file?.name, position });
@@ -193,15 +319,17 @@ export async function createNewWindow(
       hasFile: !!file
     });
     
-    // 在开发模式下使用完整的 devUrl
+    // 在开发模式下使用完整的 devUrl，并附带布局状态 + 主题参数
     const isDev = import.meta.env.DEV;
-    const windowUrl = isDev ? 'http://localhost:1420' : '/';
+    const baseUrl = isDev ? 'http://localhost:1420' : '/';
+    // 优先用 appendLayoutParam（已包含主题），避免重复
+    const windowUrl = appendLayoutParam(baseUrl);
     
     console.log('[windowManager] Creating window with URL:', windowUrl, 'isDev:', isDev);
     
     const newWindow = new WebviewWindow(windowLabel, {
       url: windowUrl,
-      title: 'PocketStata - 口袋Stata',
+      title: 'PocketData - 口袋数据',
       width: 1200,
       height: 800,
       minWidth: 800,
@@ -262,36 +390,43 @@ export async function createNewWindow(
 export async function sendTabToWindow(
   targetWindowLabel: string,
   tab: Tab,
-  file: DTAFile,
-  insertIndex?: number
+  file: DTAFile | ScriptFile,
+  insertIndex?: number,
+  terminalSessions?: TerminalSessionInfo[]
 ): Promise<void> {
   try {
     const currentWindow = getCurrentWebviewWindow();
     
+    const isScript = tab.type === 'script';
+    
     // 确保数据可以被序列化
     const safeTab = { ...tab };
-    const safeFile = { 
-      ...file,
-      // 确保 data 是数组
-      data: Array.isArray(file.data) ? file.data : [],
-      // 确保 variables 是数组
-      variables: Array.isArray(file.variables) ? file.variables : [],
-      // 确保 valueLabels 是对象
-      valueLabels: file.valueLabels || {}
-    };
+    const safeFile = isScript
+      ? {
+          ...(file as ScriptFile),
+          content: (file as ScriptFile).content || '',
+          language: (file as ScriptFile).language || 'stata',
+          isDirty: false
+        }
+      : {
+          ...(file as DTAFile),
+          data: Array.isArray((file as DTAFile).data) ? (file as DTAFile).data : [],
+          variables: Array.isArray((file as DTAFile).variables) ? (file as DTAFile).variables : [],
+          valueLabels: (file as DTAFile).valueLabels || {}
+        };
     
     const transferData: TabTransferData = {
       tab: safeTab,
       file: safeFile,
       sourceWindowLabel: currentWindow.label,
+      terminalSessions: terminalSessions && terminalSessions.length > 0 ? terminalSessions : undefined,
     };
 
     console.log('[windowManager] Emitting tab transfer event:', {
       targetWindow: targetWindowLabel,
       tabTitle: safeTab.title,
       fileName: safeFile.name,
-      dataLength: safeFile.data.length,
-      variablesLength: safeFile.variables.length
+      isScript,
     });
 
     await emit(TAB_TRANSFER_EVENT, {
@@ -492,6 +627,32 @@ export async function getCurrentWindowLabel(): Promise<string> {
 export async function closeCurrentWindow(): Promise<void> {
   const currentWindow = getCurrentWebviewWindow();
   await currentWindow.close();
+}
+
+/**
+ * 广播主题变更给所有子窗口
+ */
+export async function broadcastThemeChange(theme: string): Promise<void> {
+  try {
+    await emit(THEME_CHANGED_EVENT, { theme });
+  } catch (error) {
+    console.error('[windowManager] Failed to broadcast theme change:', error);
+  }
+}
+
+/**
+ * 监听主题变更事件（子窗口使用）
+ */
+export async function listenForThemeChange(
+  callback: (theme: string) => void
+): Promise<() => void> {
+  const unlisten = await listen<{ theme: string }>(
+    THEME_CHANGED_EVENT,
+    (event) => {
+      callback(event.payload.theme);
+    }
+  );
+  return unlisten;
 }
 
 export async function focusWindow(windowLabel: string): Promise<void> {
@@ -699,7 +860,7 @@ export async function checkMergeTarget(
 export async function requestTabMerge(
   targetWindowLabel: string,
   tab: Tab,
-  file: DTAFile,
+  file: DTAFile | ScriptFile,
   sourceWindowLabel: string
 ): Promise<boolean> {
   try {

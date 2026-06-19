@@ -1,0 +1,447 @@
+<!--By DirRain-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>滚轮 Toast 堆叠系统 By DirRain</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        /* 核心容器 - 固定宽度+左对齐，作为Toast的左对齐基准 */
+        .toast-container {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%) !important;
+            z-index: 9999;
+            width: 280px;
+            height: auto;
+            padding: 0;
+            margin: 0;
+            pointer-events: auto;
+            /* 确保容器自身左对齐无偏移 */
+            right: auto;
+            bottom: auto;
+        }
+
+        /* 堆叠容器 - 继承容器宽度，确保Toast的左对齐基准统一 */
+        .toast-stack {
+            position: relative;
+            left: 0 !important;  /* 强制堆叠容器左对齐 */
+            top: 0;
+            transform: none !important;
+            width: 100%;
+            height: auto;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /* 消除任何可能的水平边距/内边距 */
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+        }
+
+        /* Toast基础样式 - 核心左对齐保障 */
+        .toast-item {
+            position: absolute;
+            left: 0 !important;  /* 强制左对齐，优先级最高 */
+            right: auto !important; /* 禁用右对齐属性 */
+            top: 0;
+            width: 100%;  /* 宽度继承容器，确保左对齐后整体宽度一致 */
+            height: 46px;
+            padding: 14px 18px;
+            margin: 0 !important; /* 消除外边距影响 */
+            background: rgba(51, 51, 51, 0.95);
+            color: #fff;
+            border-radius: 8px;
+            border-left: 4px solid #409eff;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            z-index: 1;
+            opacity: 0;
+            transform: translateX(-100%) scale(0.9); /* 仅动画时水平偏移，正常状态会重置 */
+            filter: blur(3px);
+            pointer-events: none;
+            transition: all 0.3s ease;
+            visibility: hidden;
+            animation-fill-mode: forwards !important;
+            /* 文本左对齐（可选，增强视觉左对齐） */
+            text-align: left !important;
+        }
+
+        /* 聚焦区Toast - 仅重置水平偏移，保留左对齐 */
+        .toast-item.focus {
+            z-index: 100;
+            opacity: 1 !important;
+            transform: translateX(0) scale(1) !important; /* 水平偏移归0，保持左对齐 */
+            filter: blur(0) !important;
+            pointer-events: auto;
+            visibility: visible !important;
+            left: 0 !important; /* 再次强化左对齐，防止意外覆盖 */
+        }
+
+        /* 堆叠层级1 - 强化减淡+强制左对齐 */
+        .toast-item.layer-1 {
+            z-index: 99;
+            opacity: 0.85 !important;
+            transform: translateX(0) scale(0.97) !important; /* 仅缩放，无水平偏移 */
+            filter: blur(0.5px) !important;
+            pointer-events: auto;
+            visibility: visible !important;
+            left: 0 !important; /* 强制左对齐 */
+        }
+
+        /* 堆叠层级2 - 强制左对齐 */
+        .toast-item.layer-2 {
+            z-index: 98;
+            opacity: 0.75 !important;
+            transform: translateX(0) scale(0.94) !important;
+            filter: blur(1.0px) !important;
+            pointer-events: auto;
+            visibility: visible !important;
+            left: 0 !important; /* 强制左对齐 */
+        }
+
+        /* 堆叠层级3 - 强制左对齐 */
+        .toast-item.layer-3 {
+            z-index: 97;
+            opacity: 0.65 !important;
+            transform: translateX(0) scale(0.91) !important;
+            filter: blur(1.5px) !important;
+            pointer-events: auto;
+            visibility: visible !important;
+            left: 0 !important; /* 强制左对齐 */
+        }
+
+        /* 堆叠层级4 - 强制左对齐 */
+        .toast-item.layer-4 {
+            z-index: 96;
+            opacity: 0.55 !important;
+            transform: translateX(0) scale(0.88) !important;
+            filter: blur(2.0px) !important;
+            pointer-events: auto;
+            visibility: visible !important;
+            left: 0 !important; /* 强制左对齐 */
+        }
+
+        /* 堆叠层级5 - 强制左对齐 */
+        .toast-item.layer-5 {
+            z-index: 95;
+            opacity: 0.45 !important;
+            transform: translateX(0) scale(0.85) !important;
+            filter: blur(2.5px) !important;
+            pointer-events: auto;
+            visibility: visible !important;
+            left: 0 !important; /* 强制左对齐 */
+        }
+
+        /* 超出5层隐藏 - 仍保留左对齐 */
+        .toast-item.hidden {
+            display: none !important;
+            visibility: hidden !important;
+            left: 0 !important;
+        }
+
+        /* 左侧滑入动画 - 仅动画过程中水平偏移，结束后归0 */
+        @keyframes slideInLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(-100%) scale(0.9); /* 动画起始左偏移 */
+                filter: blur(3px);
+                visibility: visible; 
+                left: 0 !important; /* 动画中仍保持left=0，仅transform偏移 */
+            }
+            80% {
+                opacity: 1;
+                transform: translateX(5px) scale(1.02); /* 轻微右冲，增强动画感 */
+                filter: blur(0);
+                left: 0 !important;
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1); /* 动画结束水平偏移归0 */
+                filter: blur(0);
+                visibility: visible; 
+                left: 0 !important;
+            }
+        }
+
+        /* 左侧滑出动画 - 仅动画过程中水平偏移 */
+        @keyframes slideOutLeft {
+            0% {
+                opacity: 1;
+                transform: translateX(0) scale(1); /* 起始无偏移 */
+                filter: blur(0);
+                visibility: visible;
+                left: 0 !important;
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-100%) scale(0.9); /* 滑出左偏移 */
+                filter: blur(3px);
+                visibility: hidden;
+                left: 0 !important;
+            }
+        }
+
+        .toast-item.animate-in {
+            animation: slideInLeft 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            pointer-events: auto;
+            visibility: visible !important;
+            left: 0 !important; /* 动画类仍强制左对齐 */
+        }
+
+        .toast-item.animate-out {
+            animation: slideOutLeft 0.4s ease forwards;
+            left: 0 !important; /* 滑出动画仍强制左对齐 */
+        }
+
+        /* 测试按钮 */
+        .test-btn {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: #409eff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .test-btn.clear {
+            top: 100px;
+            background: #f56c6c;
+        }
+    </style>
+</head>
+<body>
+    <button class="test-btn" onclick="addToast()">添加Toast</button>
+    <button class="test-btn clear" onclick="clearAllToasts()">清空所有</button>
+
+    <script>
+        class ToastController {
+            constructor() {
+                this.container = null; 
+                this.stack = null;     
+                this.toasts = [];      
+                this.visibleCount = 3; // 聚焦区显示数量
+                this.maxLayers = 5;    // 最大堆叠层级
+                this.itemHeight = 46;  // Toast高度
+                this.itemGap = 8;      // Toast间距
+                this.currentStart = 0; // 当前聚焦区起始索引
+
+                this.initDOM();
+                this.bindEvents();
+            }
+
+            // 初始化DOM结构
+            initDOM() {
+                this.container = document.createElement('div');
+                this.container.className = 'toast-container';
+                
+                this.stack = document.createElement('div');
+                this.stack.className = 'toast-stack';
+                
+                this.container.appendChild(this.stack);
+                document.body.appendChild(this.container);
+            }
+
+            // 绑定滚轮事件
+            bindEvents() {
+                this.container.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const direction = e.deltaY > 0 ? 1 : -1;
+                    const newStart = this.currentStart + direction;
+                    const maxStart = Math.max(0, this.toasts.length - this.visibleCount);
+                    
+                    if (newStart >= 0 && newStart <= maxStart) {
+                        this.currentStart = newStart;
+                        this.updateLayout(true);
+                    }
+                }, { passive: false });
+            }
+
+            /**
+             * @param {boolean} smooth - 是否启用平滑过渡
+             * @param {boolean} skipNew - 是否跳过最新Toast（避让阶段）
+             */
+            updateLayout(smooth = false, skipNew = false) {
+                if (!smooth) {
+                    this.stack.style.transition = 'none';
+                } else {
+                    this.stack.style.transition = '';
+                }
+
+                const totalFocusHeight = (this.visibleCount - 1) * (this.itemHeight + this.itemGap);
+                const centerY = totalFocusHeight / 2;
+                const baseStep = (this.itemHeight + this.itemGap) / 3; 
+                const tightFactor = 0.7; 
+
+                const toastsToUpdate = skipNew ? this.toasts.slice(0, -1) : this.toasts;
+                
+                toastsToUpdate.forEach((toast, index) => {
+                    toast.classList.remove('focus', 'layer-1', 'layer-2', 'layer-3', 'layer-4', 'layer-5', 'hidden');
+                    
+                    const relativePos = index - this.currentStart;
+                    let distance = 0;
+                    if (relativePos < 0) {
+                        distance = Math.abs(relativePos);
+                    } else if (relativePos >= this.visibleCount) {
+                        distance = relativePos - this.visibleCount + 1;
+                    }
+
+                    if (distance > this.maxLayers) {
+                        toast.classList.add('hidden');
+                        return;
+                    }
+
+                    if (relativePos >= 0 && relativePos < this.visibleCount) {
+                        const top = (relativePos * (this.itemHeight + this.itemGap)) - centerY;
+                        toast.style.top = `${top}px`;
+                        // 确保JS层面不修改left属性，维持CSS的左对齐
+                        toast.style.left = '0px !important'; 
+                        toast.classList.add('focus');
+                        return;
+                    }
+
+                    toast.classList.add(`layer-${distance}`);
+                    const nonlinearStep = baseStep * Math.sqrt(distance) * tightFactor;
+                    let topPos = 0;
+                    if (relativePos < 0) {
+                        topPos = -centerY - nonlinearStep;
+                    } else {
+                        topPos = centerY + nonlinearStep;
+                    }
+                    toast.style.top = `${Math.round(topPos)}px`;
+                    // JS层面强制设置left为0，双重保障左对齐
+                    toast.style.left = '0px !important';
+                });
+
+                if (!smooth) {
+                    setTimeout(() => {
+                        this.stack.style.transition = '';
+                    }, 50);
+                }
+            }
+
+            /**
+             * @param {string} content - Toast内容
+             */
+            addToast(content) {
+                const defaultTexts = [
+                    '操作成功！', '数据加载完成', '请填写完整信息',
+                    '网络连接不稳定', '已保存修改', '文件上传成功',
+                    '验证码发送成功', '用户名或密码错误', '请求超时，请重试'
+                ];
+                content = content || defaultTexts[Math.floor(Math.random() * defaultTexts.length)];
+
+                const toast = document.createElement('div');
+                toast.className = 'toast-item';
+                toast.textContent = content;
+                toast.addEventListener('click', () => this.removeToast(toast));
+
+                // 初始状态仍强制左对齐
+                toast.style.left = '0px !important';
+                toast.style.visibility = 'hidden';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-100%) scale(0.9)';
+
+                this.stack.appendChild(toast);
+                this.toasts.push(toast);
+
+                const newStart = Math.max(0, this.toasts.length - this.visibleCount);
+                this.currentStart = newStart;
+                this.updateLayout(false, true);
+
+                const relativePos = this.toasts.length - 1 - this.currentStart;
+                let distance = 0;
+                if (relativePos < 0) {
+                    distance = Math.abs(relativePos);
+                } else if (relativePos >= this.visibleCount) {
+                    distance = relativePos - this.visibleCount + 1;
+                }
+                
+                const totalFocusHeight = (this.visibleCount - 1) * (this.itemHeight + this.itemGap);
+                const centerY = totalFocusHeight / 2;
+                const baseStep = (this.itemHeight + this.itemGap) / 3;
+                const tightFactor = 0.7;
+
+                let topPos = 0;
+                if (relativePos >= 0 && relativePos < this.visibleCount) {
+                    topPos = (relativePos * (this.itemHeight + this.itemGap)) - centerY;
+                } else {
+                    const nonlinearStep = baseStep * Math.sqrt(distance) * tightFactor;
+                    if (relativePos < 0) {
+                        topPos = -centerY - nonlinearStep;
+                    } else {
+                        topPos = centerY + nonlinearStep;
+                    }
+                }
+                toast.style.top = `${Math.round(topPos)}px`;
+                // 新增Toast时强制左对齐
+                toast.style.left = '0px !important';
+
+                setTimeout(() => {
+                    toast.classList.add('animate-in');
+                    setTimeout(() => {
+                        if (relativePos >= 0 && relativePos < this.visibleCount) {
+                            toast.classList.add('focus');
+                        } else if (distance <= this.maxLayers) {
+                            toast.classList.add(`layer-${distance}`);
+                        }
+                    }, 500);
+                }, 100);
+            }
+
+            /**
+             * 移除单个Toast
+             */
+            removeToast(toast) {
+                if (!toast || toast.classList.contains('animate-out')) return;
+
+                toast.classList.add('animate-out');
+                toast.addEventListener('animationend', () => {
+                    toast.remove();
+                    const index = this.toasts.indexOf(toast);
+                    if (index > -1) this.toasts.splice(index, 1);
+                    
+                    const maxStart = Math.max(0, this.toasts.length - this.visibleCount);
+                    this.currentStart = Math.min(this.currentStart, maxStart);
+                    this.updateLayout(true);
+                }, { once: true });
+            }
+
+            /**
+             * 清空所有Toast
+             */
+            clearAll() {
+                this.toasts.forEach(toast => {
+                    toast.classList.add('animate-out');
+                    setTimeout(() => toast.remove(), 400);
+                });
+                this.toasts = [];
+                this.currentStart = 0;
+                this.updateLayout(false);
+            }
+        }
+
+        // 初始化控制器
+        const toastController = new ToastController();
+
+        // 全局方法
+        function addToast() {
+            toastController.addToast();
+        }
+
+        function clearAllToasts() {
+            toastController.clearAll();
+        }
+    </script>
+</body>
+</html>

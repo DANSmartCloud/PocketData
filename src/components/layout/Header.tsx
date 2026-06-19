@@ -1,6 +1,7 @@
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useCallback, useEffect, RefObject } from "react";
 import { Menu, X, Code, FileText, Table, FileSpreadsheet, FileType } from "lucide-react";
 import { useFileStore } from "@/stores/fileStore";
+import { useProjectStore } from "@/stores/projectStore";
 import { Logo } from "@/components/common/Logo";
 import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWebviewWindow, WebviewWindow } from '@tauri-apps/api/webviewWindow';
@@ -15,13 +16,16 @@ import {
   updateWindowPosition,
   unregisterWindow,
   sendTabToWindow,
+  appendLayoutParam,
 } from "@/utils/windowManager";
+import type { PowerShellTerminalRef } from "@/components/terminal/PowerShellTerminal";
 import styles from "./Header.module.css";
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
   showSidebarButton?: boolean;
   isMobile?: boolean;
+  terminalRef?: RefObject<PowerShellTerminalRef | null>;
 }
 
 type DragPhase = 'idle' | 'dragging' | 'preview' | 'merged';
@@ -95,8 +99,12 @@ function cloneDragInfo(): DragInfo {
   return { ...globalDragInfo };
 }
 
-export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = false }: HeaderProps) {
-  const { tabs, setActiveTab, closeTab, getTabData, receiveTabFromWindow, scripts } = useFileStore();
+export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = false, terminalRef }: HeaderProps) {
+  const { tabs, activeTabId, setActiveTab, closeTab, getTabData, receiveTabFromWindow, scripts } = useFileStore();
+  const projectRoot = useProjectStore((s) => s.rootPath);
+  const projectRootName = useProjectStore((s) => s.rootName);
+  const projectFileTree = useProjectStore((s) => s.fileTree);
+  const projectExpandedFolders = useProjectStore((s) => s.expandedFolders);
   const [isMaximized, setIsMaximized] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [_ghostState, setGhostState] = useState(false);
@@ -356,9 +364,10 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
         const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow');
 
         const isDev = import.meta.env.DEV;
+        const currentTheme = (() => { try { return localStorage.getItem('pocketdata-theme') || 'light'; } catch { return 'light'; } })();
         const previewUrl = isDev
-          ? `http://localhost:1420?dragpreview=true&badge=${badge || 'none'}&title=${encodeURIComponent(title)}&w=${Math.round(width)}&h=${Math.round(height)}`
-          : `/?dragpreview=true&badge=${badge || 'none'}&title=${encodeURIComponent(title)}&w=${Math.round(width)}&h=${Math.round(height)}`;
+          ? `http://localhost:1420?dragpreview=true&badge=${badge || 'none'}&title=${encodeURIComponent(title)}&w=${Math.round(width)}&h=${Math.round(height)}&theme=${encodeURIComponent(currentTheme)}`
+          : `/?dragpreview=true&badge=${badge || 'none'}&title=${encodeURIComponent(title)}&w=${Math.round(width)}&h=${Math.round(height)}&theme=${encodeURIComponent(currentTheme)}`;
 
         const previewWindow = new WebviewWindow(previewLabel, {
           url: previewUrl,
@@ -424,28 +433,57 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
         const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow');
 
         const transferKey = `pocketstata_tab_transfer_${windowLabel}`;
-        const safeFile = {
-          ...tabData.file,
-          data: Array.isArray(tabData.file.data) ? tabData.file.data : [],
-          variables: Array.isArray(tabData.file.variables) ? tabData.file.variables : [],
-          valueLabels: tabData.file.valueLabels || {}
-        };
+        const isScript = tabData.tab.type === 'script';
+        const safeFile = isScript
+          ? {
+              ...tabData.file,
+              content: typeof tabData.file.content === 'string' ? tabData.file.content : '',
+              language: tabData.file.language || 'stata',
+              isDirty: false,
+              name: tabData.file.name || tabData.tab.title,
+              path: tabData.file.path || '',
+              id: tabData.file.id || '',
+            }
+          : {
+              ...tabData.file,
+              data: Array.isArray(tabData.file.data) ? tabData.file.data : [],
+              variables: Array.isArray(tabData.file.variables) ? tabData.file.variables : [],
+              valueLabels: tabData.file.valueLabels || {}
+            };
         try {
+          // 同时打包项目状态（如果已打开）
+          const projectPayload = projectRoot && projectFileTree
+            ? {
+                isOpen: true,
+                rootPath: projectRoot,
+                rootName: projectRootName,
+                fileTree: projectFileTree,
+                expandedFolders: Array.from(projectExpandedFolders),
+              }
+            : null;
+          // 收集当前终端会话信息，随标签页一起转移
+          const terminalSessions = terminalRef?.current?.getAllSessionInfos?.();
+
           localStorage.setItem(transferKey, JSON.stringify({
             tab: { ...tabData.tab, isActive: true },
             file: safeFile,
+            project: projectPayload,
             sourceWindow: globalDragInfo.sourceWindowLabel,
             mouseInTabX: globalDragInfo.mouseInTabX,
             mouseInTabY: globalDragInfo.mouseInTabY,
+            terminalSessions: terminalSessions && terminalSessions.length > 0 ? terminalSessions : undefined,
           }));
         } catch (err) {
           console.error('[Header] Failed to store tab data:', err);
         }
 
         const isDev = import.meta.env.DEV;
-        const windowUrl = isDev
+        // 父窗口当前布局状态（侧边栏、终端、模式、面板可见性等）随 URL 传递给子窗口
+        const baseUrl = isDev
           ? `http://localhost:1420?ghost=false&tabTransferKey=${encodeURIComponent(transferKey)}`
           : `/?ghost=false&tabTransferKey=${encodeURIComponent(transferKey)}`;
+        // appendLayoutParam 会在 URL 上附加 layout=...（含 theme）
+        const windowUrl = appendLayoutParam(baseUrl);
 
         const newWindow = new WebviewWindow(windowLabel, {
           url: windowUrl,
@@ -502,6 +540,8 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
         if (globalDragInfo.tabId) {
           closeTabRef.current(globalDragInfo.tabId);
         }
+        // 关闭源窗口中已转移的终端会话
+        terminalRef?.current?.closeAllSessions?.();
         globalDragInfo.tabId = null;
         globalDragInfoRef.current = globalDragInfo;
 
@@ -602,10 +642,13 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
 
         if (verticalDist <= REORDER_THRESHOLD && verticalDist >= 0 && targetWindow && globalDragInfo.tabData && !globalDragInfo.isMerged) {
           try {
+            const allTermSessions = terminalRef?.current?.getAllSessionInfos?.();
             await sendTabToWindow(
               targetWindow.label,
               globalDragInfo.tabData.tab,
-              globalDragInfo.tabData.file
+              globalDragInfo.tabData.file,
+              undefined,
+              allTermSessions
             );
 
             globalDragInfo.isMerged = true;
@@ -619,6 +662,7 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
 
             // 发送接管事件给目标窗口
             try {
+              const termSessions = terminalRef?.current?.getAllSessionInfos?.();
               await sendDragTakeover(targetWindow.label, {
                 tab: globalDragInfo.tabData.tab,
                 file: globalDragInfo.tabData.file,
@@ -633,6 +677,7 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
                 tabWidth: globalDragInfo.tabWidth,
                 tabHeight: globalDragInfo.tabHeight,
                 sourceWindowLabel: globalDragInfo.sourceWindowLabel,
+                terminalSessions: termSessions && termSessions.length > 0 ? termSessions : undefined,
               });
             } catch (err) {
               console.warn('[Header] Drag takeover send failed, keeping detachedWindow:', err);
@@ -730,11 +775,24 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
           }
 
           if (verticalDist <= REORDER_THRESHOLD && verticalDist >= 0 && targetWindow && globalDragInfo.tabData && !globalDragInfo.isMerged) {
+            // 修复：先在 localStorage 备份标签数据，作为丢失时的恢复机制
+            const backupKey = `pocketdata_merge_backup_${globalDragInfo.tabData.tab.id}`;
             try {
+              localStorage.setItem(backupKey, JSON.stringify({
+                tab: globalDragInfo.tabData.tab,
+                file: globalDragInfo.tabData.file,
+                ts: Date.now(),
+              }));
+            } catch {}
+
+            try {
+              const allTermSessions = terminalRef?.current?.getAllSessionInfos?.();
               await sendTabToWindow(
                 targetWindow.label,
                 globalDragInfo.tabData.tab,
-                globalDragInfo.tabData.file
+                globalDragInfo.tabData.file,
+                undefined,
+                allTermSessions
               );
 
               globalDragInfo.isMerged = true;
@@ -744,6 +802,7 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
 
               // 发送接管事件给目标窗口
               try {
+                const termSessions = terminalRef?.current?.getAllSessionInfos?.();
                 await sendDragTakeover(targetWindow.label, {
                   tab: globalDragInfo.tabData.tab,
                   file: globalDragInfo.tabData.file,
@@ -758,12 +817,18 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
                   tabWidth: globalDragInfo.tabWidth,
                   tabHeight: globalDragInfo.tabHeight,
                   sourceWindowLabel: globalDragInfo.sourceWindowLabel,
+                  terminalSessions: termSessions && termSessions.length > 0 ? termSessions : undefined,
                 });
               } catch (err) {
                 console.warn('[Header] Single-tab drag takeover send failed:', err);
               }
 
+              // 给目标窗口一点时间处理接收事件
+              await new Promise(r => setTimeout(r, 150));
+
               try { await currentWindow.close(); } catch {}
+              // 清理备份
+              try { localStorage.removeItem(backupKey); } catch {}
 
               isGhostWindowRef.current = false;
               setGhostState(false);
@@ -906,10 +971,26 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
 
+    // 鼠标滚轮横向滚动标签页栏
+    const onWheel = (e: WheelEvent) => {
+      const tabList = element.querySelector(`.${styles.tabList}`) as HTMLElement | null;
+      if (!tabList) return;
+      // 优先响应 deltaX 横向滚动，否则把 deltaY 转换为横向
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (delta !== 0) {
+        if (tabList.scrollWidth > tabList.clientWidth) {
+          tabList.scrollLeft += delta;
+          e.preventDefault();
+        }
+      }
+    };
+    element.addEventListener('wheel', onWheel, { passive: false });
+
     cleanupRef.current = () => {
       element.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      element.removeEventListener('wheel', onWheel);
 
       if (mergeBadgeWindowRef.current) {
         mergeBadgeWindowRef.current.close().catch(() => {});
@@ -940,6 +1021,8 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
   }, [isMobile]);
 
   useEffect(() => {
+    let unlistenResize: (() => void) | null = null;
+
     const checkMaximized = async () => {
       if (isDesktop) {
         try {
@@ -951,7 +1034,29 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
         }
       }
     };
+
     checkMaximized();
+
+    // 监听窗口 resize 事件，以便在通过手势（双击标题栏、拖拽到顶部等）改变窗口大小时更新按钮状态
+    if (isDesktop) {
+      try {
+        const window = getCurrentWebviewWindow();
+        window.onResized(async () => {
+          try {
+            const maximized = await window.isMaximized();
+            setIsMaximized(maximized);
+          } catch (e) {
+            // 静默处理
+          }
+        }).then(fn => { unlistenResize = fn; });
+      } catch (e) {
+        console.error("Failed to listen for window resize:", e);
+      }
+    }
+
+    return () => {
+      if (unlistenResize) unlistenResize();
+    };
   }, [isDesktop]);
 
   useEffect(() => {
@@ -980,6 +1085,19 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
       cleanupTransferFn = await listenForTabTransfer((data, insertIndex) => {
         receiveTabFromWindow(data.tab, data.file, insertIndex);
 
+        // 恢复终端会话
+        if (data.terminalSessions && data.terminalSessions.length > 0) {
+          setTimeout(() => {
+            terminalRef?.current?.createSessionsFromInfos(data.terminalSessions!);
+          }, 300);
+        }
+
+        // 清理可能的合并备份
+        try {
+          const backupKey = `pocketdata_merge_backup_${data.tab.id}`;
+          localStorage.removeItem(backupKey);
+        } catch {}
+
         if (isGhostWindowRef.current) {
           isGhostWindowRef.current = false;
           setGhostState(false);
@@ -989,6 +1107,37 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
           currentWindow.setSkipTaskbar(false).catch(() => {});
         }
       });
+
+      // 兜底：定期扫描 localStorage 中的合并备份
+      // 若目标窗口已收到 tab 但因 race 条件未执行清理，此处兜底
+      const backupScanInterval = setInterval(() => {
+        try {
+          const keys = Object.keys(localStorage).filter(k => k.startsWith('pocketdata_merge_backup_'));
+          const now = Date.now();
+          for (const k of keys) {
+            const raw = localStorage.getItem(k);
+            if (!raw) continue;
+            const { tab, file, ts } = JSON.parse(raw);
+            // 5 秒后强制清理（远大于正常合并耗时）
+            if (now - ts > 5000) {
+              localStorage.removeItem(k);
+              continue;
+            }
+            // 检查目标窗口是否真的有该 tab，否则重新尝试添加
+            const store = useFileStore.getState();
+            const isScript = tab.type === 'script';
+            const exists = isScript
+              ? store.tabs.some(t => t.title === tab.title && store.scripts[t.fileId]?.path === file.path)
+              : store.tabs.some(t => t.title === tab.title && store.files[t.fileId]?.path === file.path);
+            if (!exists) {
+              console.log('[Header] Backup scan: re-adding missing tab from backup', k);
+              store.receiveTabFromWindow(tab, file);
+            }
+          }
+        } catch {}
+      }, 2000);
+      // 保存 interval id 以便清理
+      (cleanupTransferFn as any).__backupInterval = backupScanInterval;
 
       cleanupMergeRequestFn = await listenForTabMergeRequest(async (data) => {
         receiveTabFromWindow(data.tab, data.file);
@@ -1040,6 +1189,13 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
         // 接收标签页数据
         const insertIndex = useFileStore.getState().tabs.length;
         useFileStore.getState().receiveTabFromWindow(data.tab, data.file, insertIndex);
+
+        // 恢复终端会话
+        if (data.terminalSessions && data.terminalSessions.length > 0) {
+          setTimeout(() => {
+            terminalRef?.current?.createSessionsFromInfos(data.terminalSessions!);
+          }, 300);
+        }
 
         // 等待 React 渲染完成
         await new Promise(r => setTimeout(r, 50));
@@ -1187,7 +1343,11 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
     setupListeners();
 
     return () => {
-      if (cleanupTransferFn) cleanupTransferFn();
+      if (cleanupTransferFn) {
+        const intervalId = (cleanupTransferFn as any).__backupInterval;
+        if (intervalId) clearInterval(intervalId);
+        cleanupTransferFn();
+      }
       if (cleanupMergeRequestFn) cleanupMergeRequestFn();
       if (cleanupMergeResponseFn) cleanupMergeResponseFn();
       if (cleanupSolidifyFn) cleanupSolidifyFn();
@@ -1209,6 +1369,35 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
       isCreatingBadgeRef.current = false;
     };
   }, []);
+
+  /**
+   * 激活新文件时，顶部标签页栏自动滑动到激活的标签页。
+   * 解决：标签页变多后激活态标签可能滚动到屏幕外，看不见高亮。
+   */
+  useEffect(() => {
+    const tabList = containerRef.current?.querySelector(`.${styles.tabList}`) as HTMLElement | null;
+    if (!tabList) return;
+    const activeEl = tabList.querySelector(`.${styles.active}`) as HTMLElement | null;
+    if (!activeEl) return;
+    // 避免频繁滚动：使用 requestAnimationFrame 等待 DOM 完成
+    const raf = requestAnimationFrame(() => {
+      try {
+        activeEl.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+      } catch {
+        // 回退：手动计算
+        const elLeft = activeEl.offsetLeft;
+        const elRight = elLeft + activeEl.offsetWidth;
+        const viewLeft = tabList.scrollLeft;
+        const viewRight = viewLeft + tabList.clientWidth;
+        if (elLeft < viewLeft) {
+          tabList.scrollTo({ left: elLeft - 24, behavior: 'smooth' });
+        } else if (elRight > viewRight) {
+          tabList.scrollTo({ left: elRight - tabList.clientWidth + 24, behavior: 'smooth' });
+        }
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [activeTabId, tabs.length]);
 
   const handleTabClick = useCallback((tabId: string) => {
     if (globalDragInfoRef.current.phase === 'idle') {
@@ -1273,7 +1462,7 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
         >
           <Logo size={28} className={styles.logoIcon} />
           <div className={styles.logoTextWrapper}>
-            <span className={styles.logoText}>PocketStata</span>
+            <span className={styles.logoText}>PocketData</span>
             <span className={styles.versionBadge}>v1.0.0</span>
           </div>
         </div>
@@ -1321,7 +1510,7 @@ export function Header({ onToggleSidebar, showSidebarButton = true, isMobile = f
                 >
                   <span className={styles.tabIcon}>{getTabIcon()}</span>
                   <span className={styles.tabTitle}>{tab.title}</span>
-                  {tabs.length > 1 && (
+                  {(
                     <button
                       className={styles.closeBtn}
                       onClick={(e) => handleCloseTab(e, tab.id)}

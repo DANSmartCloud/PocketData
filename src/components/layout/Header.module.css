@@ -127,22 +127,35 @@
   overflow: hidden;
   -webkit-app-region: no-drag;
   cursor: default;
+  min-width: 0;
 }
 
 .tabList {
   display: flex;
   align-items: center;
   height: 100%;
+  gap: 4px;
+  padding: 0 4px;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-light) transparent;
+  width: 100%;
 }
 
 .tabList::-webkit-scrollbar {
-  display: none;
+  height: 4px;
+}
+
+.tabList::-webkit-scrollbar-thumb {
+  background: var(--color-border-light);
+  border-radius: 2px;
+}
+
+.tabList::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
 }
 
 .tab {
@@ -160,6 +173,7 @@
   flex-shrink: 0;
   max-width: 180px;
   border: 1px solid transparent;
+  position: relative;
 }
 
 [data-theme="dark"] .tab {
@@ -181,6 +195,32 @@
 
 [data-theme="dark"] .tab.active {
   background: var(--color-card-dark);
+}
+
+/* 底部条形指示器 - 圆角高亮，带动画（与全站统一） */
+.tab.active::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 2px;
+  height: 3px;
+  background: var(--color-primary);
+  border-radius: 2px;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-primary) 50%, transparent);
+  animation: headerTabIndicatorIn 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+@keyframes headerTabIndicatorIn {
+  from {
+    transform: scaleX(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
 }
 
 .tab.dragging {
@@ -222,11 +262,12 @@
   height: 18px;
   border-radius: var(--radius-sm);
   color: var(--color-text-secondary);
-  opacity: 0;
+  opacity: 0.7;
   transition: all var(--transition-fast);
 }
 
-.tab:hover .closeBtn {
+.tab:hover .closeBtn,
+.active .closeBtn {
   opacity: 1;
 }
 

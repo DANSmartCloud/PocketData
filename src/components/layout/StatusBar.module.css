@@ -8,8 +8,15 @@
   border-top: 1px solid var(--color-border-light);
   font-size: 12px;
   color: var(--color-text-secondary);
-  overflow-x: hidden;
+  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   flex-shrink: 0;
+}
+
+.statusBar::-webkit-scrollbar {
+  height: 0;
+  width: 0;
 }
 
 [data-theme="dark"] .statusBar {
@@ -45,6 +52,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.statusDirty {
+  color: #f59e0b;
 }
 
 /* 桌面端专用 */
@@ -111,11 +122,25 @@
 }
 
 .modeStata {
-  background: #2563eb;
+  background: var(--color-primary);
+}
+
+.modePython {
+  background: #f59e0b;
 }
 
 .modeExcel {
   background: #10b981;
+}
+
+/* 终端切换按钮 - 任何模式均可用 */
+.terminalToggleActive {
+  background: var(--color-primary) !important;
+  color: white !important;
+}
+
+.terminalToggleActive:hover {
+  background: var(--color-primary-dark) !important;
 }
 
 /* 单元格位置显示 */
@@ -125,12 +150,12 @@
   font-size: 13px;
   color: var(--color-primary);
   padding: 2px 8px;
-  background: rgba(37, 99, 235, 0.1);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
   border-radius: var(--radius-sm);
 }
 
 [data-theme="dark"] .selectionText {
-  background: rgba(37, 99, 235, 0.2);
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 /* 移动端适配 */

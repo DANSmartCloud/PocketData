@@ -1,0 +1,569 @@
+/* ================================================================
+ * Project Explorer & File Tree
+ * 类 VSCode 风格：深色/浅色主题适配（使用全局 CSS 变量）
+ * ================================================================ */
+
+/* ---------------- 整体容器 ---------------- */
+.explorer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--color-card-light);
+  color: var(--color-text-light);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .explorer {
+  background: var(--color-card-dark);
+  color: var(--color-text-dark);
+}
+
+/* ---------------- 顶部 header ---------------- */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-light);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  min-height: 36px;
+}
+
+[data-theme="dark"] .header {
+  border-bottom-color: var(--color-border-dark);
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.projectName {
+  color: var(--color-text-primary);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+[data-theme="dark"] .projectName {
+  color: var(--color-text-dark);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.iconBtn:hover {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .iconBtn:hover {
+  background: var(--color-border-dark);
+}
+
+/* ---------------- 搜索框 ---------------- */
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 8px;
+  border-bottom: 1px solid var(--color-border-light);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .searchRow {
+  border-bottom-color: var(--color-border-dark);
+}
+
+.searchInputWrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 8px;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 5px 24px 5px 26px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-light);
+  border: 1px solid transparent;
+  color: var(--color-text-light);
+  font-size: 12px;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.searchInput:focus {
+  border-color: var(--color-primary);
+  background: var(--color-card-light);
+}
+
+[data-theme="dark"] .searchInput {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-dark);
+}
+
+[data-theme="dark"] .searchInput:focus {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.clearBtn {
+  position: absolute;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.clearBtn:hover {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .clearBtn:hover {
+  background: var(--color-border-dark);
+}
+
+/* ---------------- 选中信息条 ---------------- */
+.selectionBar {
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-mono);
+  background: var(--color-bg-light);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .selectionBar {
+  border-bottom-color: var(--color-border-dark);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ---------------- 树滚动区 ---------------- */
+.treeScroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 0;
+  min-height: 0;
+}
+
+/* ---------------- 底部三按钮工具栏 ---------------- */
+.footerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 4px;
+  padding: 6px 8px;
+  border-top: 1px solid var(--color-border-light);
+  background: var(--color-card-light);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .footerBar {
+  border-top-color: var(--color-border-dark);
+  background: var(--color-card-dark);
+}
+
+.footerBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--color-text-secondary);
+  transition: background-color 0.15s ease, color 0.15s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.footerBtn:hover {
+  background: var(--color-bg-hover, color-mix(in srgb, var(--color-primary) 8%, transparent));
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .footerBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-primary);
+}
+
+.treeContainer {
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+.emptyState {
+  padding: 20px 12px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+/* ---------------- 树节点 ---------------- */
+.treeNode {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.treeRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 0;
+  height: 26px;
+  font-size: 13px;
+  color: var(--color-text-light);
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  border-left: 2px solid transparent;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+[data-theme="dark"] .treeRow {
+  color: var(--color-text-dark);
+}
+
+.treeRow:hover {
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-card-light));
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .treeRow:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-card-dark));
+  color: var(--color-text-primary);
+}
+
+.treeRow.selected {
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-card-light));
+  color: var(--color-text-primary);
+  border-left-color: var(--color-primary);
+  font-weight: 500;
+  /* 左侧指示条发光效果 —— 与 TabBar 底部指示条风格统一 */
+  box-shadow: inset 2px 0 6px -2px color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+[data-theme="dark"] .treeRow.selected {
+  background: color-mix(in srgb, var(--color-primary) 14%, var(--color-card-dark));
+  color: var(--color-text-primary);
+}
+
+.treeRow.selected .chevron,
+.treeRow.selected .fileName {
+  color: var(--color-text-primary);
+}
+
+/* 选中时文件图标保留类型颜色（不强制覆盖为 primary），
+   避免 CSV 绿 / Python 黄等文件类型色在选中后消失 */
+.treeRow.selected .fileIcon {
+  filter: brightness(1.1) saturate(1.2);
+}
+
+.treeRow.rootRow {
+  /* 保留占位 */
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.fileIcon {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.fileName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.treeChildren {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------------- 右键菜单 ---------------- */
+.contextMenu {
+  position: fixed;
+  z-index: 9999;
+  min-width: 180px;
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-elevated);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+[data-theme="dark"] .contextMenu {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+}
+
+.contextMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--color-text-light);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+}
+
+.contextMenuItem:hover {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .contextMenuItem {
+  color: var(--color-text-dark);
+}
+
+[data-theme="dark"] .contextMenuItem:hover {
+  background: var(--color-border-dark);
+}
+
+.contextMenuItem span {
+  flex: 1;
+}
+
+.contextMenuItem.contextMenuDanger {
+  color: var(--color-error);
+}
+
+.contextMenuItem.contextMenuDanger:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.contextMenuSeparator {
+  height: 1px;
+  background: var(--color-border-light);
+  margin: 4px 0;
+}
+
+[data-theme="dark"] .contextMenuSeparator {
+  background: var(--color-border-dark);
+}
+
+/* ---------------- 未打开项目占位 ---------------- */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  gap: 12px;
+  height: 100%;
+}
+
+.placeholderTitle {
+  font-size: 14px;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .placeholderTitle {
+  color: var(--color-text-dark);
+}
+
+.placeholderDesc {
+  font-size: 12px;
+  line-height: 1.5;
+  max-width: 220px;
+}
+
+.placeholderActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 220px;
+  margin-top: 8px;
+}
+
+.primaryBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.primaryBtn:hover {
+  background: var(--color-primary-dark);
+}
+
+.secondaryBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  transition: all var(--transition-fast);
+}
+
+.secondaryBtn:hover {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .secondaryBtn {
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+[data-theme="dark"] .secondaryBtn:hover {
+  background: var(--color-border-dark);
+}
+
+.recentList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  max-width: 240px;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.recentItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.recentItem:hover {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .recentItem {
+  color: var(--color-text-dark);
+}
+
+[data-theme="dark"] .recentItem:hover {
+  background: var(--color-border-dark);
+}
+
+.recentItemName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recentItemPath {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------- 移动端适配 ---------------- */
+@media (max-width: 768px) {
+  .searchInput {
+    font-size: 14px;
+    padding: 8px 24px 8px 28px;
+  }
+
+  .iconBtn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .treeRow {
+    height: 36px;
+    font-size: 14px;
+  }
+}

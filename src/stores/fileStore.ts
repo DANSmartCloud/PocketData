@@ -22,6 +22,7 @@ export interface DTAFile {
   label?: string;
   createdDate?: string;
   isDirty: boolean;
+  modifiedAt?: string;
 }
 
 export interface Tab {
@@ -29,7 +30,7 @@ export interface Tab {
   fileId: string;
   title: string;
   isActive: boolean;
-  type?: 'data' | 'script';
+  type?: 'data' | 'script' | 'markdown';
 }
 
 export interface ScriptFile {
@@ -38,6 +39,14 @@ export interface ScriptFile {
   name: string;
   content: string;
   language: 'stata' | 'python';
+  isDirty: boolean;
+}
+
+export interface MarkdownFile {
+  id: string;
+  path: string;
+  name: string;
+  content: string;
   isDirty: boolean;
 }
 
@@ -54,6 +63,7 @@ export interface HistoryEntry {
 interface FileState {
   files: Record<string, DTAFile>;
   scripts: Record<string, ScriptFile>;
+  markdowns: Record<string, MarkdownFile>;
   tabs: Tab[];
   activeTabId: string | null;
   history: Record<string, HistoryEntry[]>;
@@ -61,19 +71,26 @@ interface FileState {
 
   openFile: (file: DTAFile) => string;
   openScript: (script: ScriptFile) => string;
+  openMarkdown: (md: MarkdownFile) => string;
   updateScriptContent: (scriptId: string, content: string) => void;
+  updateScriptLanguage: (scriptId: string, language: 'stata' | 'python') => void;
+  updateMarkdownContent: (mdId: string, content: string) => void;
+  markMarkdownClean: (mdId: string) => void;
   closeTab: (tabId: string) => void;
   setActiveTab: (tabId: string) => void;
+  activateTabByPath: (filePath: string) => boolean;
   updateCell: (fileId: string, rowIndex: number, colIndex: number, value: unknown) => void;
   getActiveFile: () => DTAFile | null;
   getActiveScript: () => ScriptFile | null;
+  getActiveMarkdown: () => MarkdownFile | null;
   markFileClean: (fileId: string) => void;
+  updateFilePath: (fileId: string, path: string) => void;
   renameTab: (tabId: string, title: string) => void;
   reorderTabs: (tabIds: string[]) => void;
   moveTabToNewWindow: (tabId: string) => Promise<void>;
   mergeTabs: (tabIds: string[]) => void;
-  receiveTabFromWindow: (tab: Tab, file: DTAFile, insertIndex?: number) => void;
-  getTabData: (tabId: string) => { tab: Tab; file: DTAFile } | null;
+  receiveTabFromWindow: (tab: Tab, file: DTAFile | ScriptFile | MarkdownFile, insertIndex?: number) => void;
+  getTabData: (tabId: string) => { tab: Tab; file: DTAFile | ScriptFile | MarkdownFile } | null;
   undo: () => void;
   redo: () => void;
   canUndo: () => boolean;
@@ -85,6 +102,7 @@ let tabCounter = 0;
 export const useFileStore = create<FileState>((set, get) => ({
   files: {},
   scripts: {},
+  markdowns: {},
   tabs: [],
   activeTabId: null,
   history: {},
@@ -95,7 +113,11 @@ export const useFileStore = create<FileState>((set, get) => ({
     if (existingTab) {
       const tab = get().tabs.find(t => t.fileId === existingTab.id);
       if (tab) {
-        set({ activeTabId: tab.id });
+        // 修复：激活已存在 tab 时，同时把 isActive 标志同步更新，否则标签页高亮会不同步
+        set(state => ({
+          tabs: state.tabs.map(t => ({ ...t, isActive: t.id === tab.id })),
+          activeTabId: tab.id,
+        }));
         return tab.id;
       }
     }
@@ -129,7 +151,10 @@ export const useFileStore = create<FileState>((set, get) => ({
     if (existingTab) {
       const tab = get().tabs.find(t => t.fileId === existingTab.id);
       if (tab) {
-        set({ activeTabId: tab.id });
+        set(state => ({
+          tabs: state.tabs.map(t => ({ ...t, isActive: t.id === tab.id })),
+          activeTabId: tab.id,
+        }));
         return tab.id;
       }
     }
@@ -157,6 +182,60 @@ export const useFileStore = create<FileState>((set, get) => ({
     return tabId;
   },
 
+  openMarkdown: (md) => {
+    const existingTab = Object.values(get().markdowns).find(m => m.path === md.path);
+    if (existingTab) {
+      const tab = get().tabs.find(t => t.fileId === existingTab.id);
+      if (tab) {
+        set(state => ({
+          tabs: state.tabs.map(t => ({ ...t, isActive: t.id === tab.id })),
+          activeTabId: tab.id,
+        }));
+        return tab.id;
+      }
+    }
+
+    const mdId = md.id || `md_${Date.now()}`;
+    const tabId = `tab_${++tabCounter}`;
+    const newMd = { ...md, id: mdId, isDirty: false };
+    const newTab: Tab = {
+      id: tabId,
+      fileId: mdId,
+      title: md.name,
+      isActive: true,
+      type: 'markdown'
+    };
+
+    set(state => {
+      const otherTabs = state.tabs.map(t => ({ ...t, isActive: false }));
+      return {
+        markdowns: { ...state.markdowns, [mdId]: newMd },
+        tabs: [...otherTabs, newTab],
+        activeTabId: tabId
+      };
+    });
+
+    return tabId;
+  },
+
+  updateMarkdownContent: (mdId, content) => {
+    set(state => ({
+      markdowns: {
+        ...state.markdowns,
+        [mdId]: { ...state.markdowns[mdId], content, isDirty: true }
+      }
+    }));
+  },
+
+  markMarkdownClean: (mdId: string) => {
+    set(state => ({
+      markdowns: {
+        ...state.markdowns,
+        [mdId]: { ...state.markdowns[mdId], isDirty: false }
+      }
+    }));
+  },
+
   updateScriptContent: (scriptId, content) => {
     set(state => ({
       scripts: {
@@ -166,8 +245,17 @@ export const useFileStore = create<FileState>((set, get) => ({
     }));
   },
 
+  updateScriptLanguage: (scriptId, language) => {
+    set(state => ({
+      scripts: {
+        ...state.scripts,
+        [scriptId]: { ...state.scripts[scriptId], language, isDirty: true }
+      }
+    }));
+  },
+
   closeTab: (tabId) => {
-    const { tabs, activeTabId, files } = get();
+    const { tabs, activeTabId, files, scripts, markdowns } = get();
     const tabIndex = tabs.findIndex(t => t.id === tabId);
     if (tabIndex === -1) return;
 
@@ -186,15 +274,21 @@ export const useFileStore = create<FileState>((set, get) => ({
     }
 
     const newFiles = { ...files };
+    const newScripts = { ...scripts };
+    const newMarkdowns = { ...markdowns };
     const otherTabsForFile = newTabs.filter(t => t.fileId === fileId);
     if (otherTabsForFile.length === 0) {
       delete newFiles[fileId];
+      delete newScripts[fileId];
+      delete newMarkdowns[fileId];
     }
 
     set({
       tabs: newTabs,
       activeTabId: newActiveTabId,
-      files: newFiles
+      files: newFiles,
+      scripts: newScripts,
+      markdowns: newMarkdowns
     });
   },
 
@@ -203,6 +297,44 @@ export const useFileStore = create<FileState>((set, get) => ({
       tabs: state.tabs.map(t => ({ ...t, isActive: t.id === tabId })),
       activeTabId: tabId
     }));
+  },
+
+  /**
+   * 按文件路径激活已存在的标签页（文件树单击已打开文件时使用）。
+   * 返回是否找到并激活。
+   * 注意：不做任何 setProjectStore 同步——调用方负责。
+   */
+  activateTabByPath: (filePath: string): boolean => {
+    const { tabs, files, scripts, markdowns } = get();
+    // 1. 找完全匹配的 tab
+    for (const t of tabs) {
+      const f = t.type === 'script' ? scripts[t.fileId]
+        : t.type === 'markdown' ? markdowns[t.fileId]
+        : files[t.fileId];
+      if (f && f.path === filePath) {
+        set(state => ({
+          tabs: state.tabs.map(x => ({ ...x, isActive: x.id === t.id })),
+          activeTabId: t.id,
+        }));
+        return true;
+      }
+    }
+    // 2. 模糊匹配：忽略大小写 + 统一斜杠
+    const norm = (p: string) => p.replace(/\\/g, '/').toLowerCase();
+    const target = norm(filePath);
+    for (const t of tabs) {
+      const f = t.type === 'script' ? scripts[t.fileId]
+        : t.type === 'markdown' ? markdowns[t.fileId]
+        : files[t.fileId];
+      if (f && norm(f.path) === target) {
+        set(state => ({
+          tabs: state.tabs.map(x => ({ ...x, isActive: x.id === t.id })),
+          activeTabId: t.id,
+        }));
+        return true;
+      }
+    }
+    return false;
   },
 
   updateCell: (fileId, rowIndex, colIndex, value) => {
@@ -257,12 +389,32 @@ export const useFileStore = create<FileState>((set, get) => ({
     return scripts[activeTab.fileId] || null;
   },
 
+  getActiveMarkdown: () => {
+    const { tabs, activeTabId, markdowns } = get();
+    const activeTab = tabs.find(t => t.id === activeTabId);
+    if (!activeTab || activeTab.type !== 'markdown') return null;
+    return markdowns[activeTab.fileId] || null;
+  },
+
   markFileClean: (fileId) => {
     set(state => ({
       files: {
         ...state.files,
         [fileId]: { ...state.files[fileId], isDirty: false }
       }
+    }));
+  },
+
+  updateFilePath: (fileId, path) => {
+    const file = get().files[fileId];
+    if (!file) return;
+    const newName = path.split(/[/\\]/).pop() || file.name;
+    set(state => ({
+      files: {
+        ...state.files,
+        [fileId]: { ...file, path, name: newName }
+      },
+      tabs: state.tabs.map(t => t.fileId === fileId ? { ...t, title: newName } : t)
     }));
   },
 
@@ -301,44 +453,128 @@ export const useFileStore = create<FileState>((set, get) => ({
 
   receiveTabFromWindow: (tab, file, insertIndex) => {
     console.log('[fileStore] receiveTabFromWindow called:', { tab, file, insertIndex });
-    
+
+    const isScript = tab.type === 'script';
+    const isMarkdown = tab.type === 'markdown';
+
     set(state => {
-      // 防重复：检查是否已存在相同来源的标签页（通过 tab.id 和 file.path 判断）
-      const existingTab = state.tabs.find(t => 
-        t.title === tab.title && 
-        state.files[t.fileId]?.path === file.path
-      );
+      // 防重复：检查是否已存在相同来源的标签页（通过 tab.title 和 file.path 判断）
+      const existingTab = isScript
+        ? state.tabs.find(t =>
+            t.title === tab.title &&
+            state.scripts[t.fileId]?.path === (file as ScriptFile).path
+          )
+        : isMarkdown
+        ? state.tabs.find(t =>
+            t.title === tab.title &&
+            state.markdowns[t.fileId]?.path === (file as MarkdownFile).path
+          )
+        : state.tabs.find(t =>
+            t.title === tab.title &&
+            state.files[t.fileId]?.path === (file as DTAFile).path
+          );
       if (existingTab) {
-        console.log('[fileStore] Tab already exists, skipping:', existingTab.id);
-        return state;
+        console.log('[fileStore] Tab already exists, activating it:', existingTab.id);
+        // 修复：即使标签页已存在，也激活它，而不是跳过
+        return {
+          tabs: state.tabs.map(t => ({ ...t, isActive: t.id === existingTab.id })),
+          activeTabId: existingTab.id
+        };
       }
-      
+
       // 生成新的 ID，避免冲突
       const newFileId = `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const newTabId = `tab_${++tabCounter}`;
-      
+
+      if (isScript) {
+        const scriptFile = file as ScriptFile;
+        const newScript: ScriptFile = {
+          ...scriptFile,
+          id: newFileId,
+          content: scriptFile.content || '',
+          language: scriptFile.language || 'stata',
+          isDirty: false
+        };
+
+        const newTab: Tab = {
+          ...tab,
+          id: newTabId,
+          fileId: newFileId,
+          type: 'script',
+          isActive: true
+        };
+
+        const otherTabs = state.tabs.map(t => ({ ...t, isActive: false }));
+        let newTabs: Tab[];
+        if (insertIndex !== undefined && insertIndex >= 0 && insertIndex <= otherTabs.length) {
+          newTabs = [...otherTabs.slice(0, insertIndex), newTab, ...otherTabs.slice(insertIndex)];
+        } else {
+          newTabs = [...otherTabs, newTab];
+        }
+
+        return {
+          scripts: { ...state.scripts, [newFileId]: newScript },
+          tabs: newTabs,
+          activeTabId: newTabId
+        };
+      }
+
+      if (isMarkdown) {
+        const mdFile = file as MarkdownFile;
+        const newMd: MarkdownFile = {
+          ...mdFile,
+          id: newFileId,
+          content: mdFile.content || '',
+          isDirty: false
+        };
+
+        const newTab: Tab = {
+          ...tab,
+          id: newTabId,
+          fileId: newFileId,
+          type: 'markdown',
+          isActive: true
+        };
+
+        const otherTabs = state.tabs.map(t => ({ ...t, isActive: false }));
+        let newTabs: Tab[];
+        if (insertIndex !== undefined && insertIndex >= 0 && insertIndex <= otherTabs.length) {
+          newTabs = [...otherTabs.slice(0, insertIndex), newTab, ...otherTabs.slice(insertIndex)];
+        } else {
+          newTabs = [...otherTabs, newTab];
+        }
+
+        return {
+          markdowns: { ...state.markdowns, [newFileId]: newMd },
+          tabs: newTabs,
+          activeTabId: newTabId
+        };
+      }
+
+      // 原有 DTAFile 逻辑
       // 深拷贝文件数据，确保完整性
+      const dtaFile = file as DTAFile;
       const newFile: DTAFile = {
-        ...file,
+        ...dtaFile,
         id: newFileId,
         // 确保 data 被正确复制
-        data: file.data ? [...file.data.map(row => ({ ...row }))] : [],
-        variables: file.variables ? [...file.variables] : [],
-        valueLabels: file.valueLabels ? { ...file.valueLabels } : {},
-        isDirty: file.isDirty ?? false
+        data: dtaFile.data ? [...dtaFile.data.map(row => ({ ...row }))] : [],
+        variables: dtaFile.variables ? [...dtaFile.variables] : [],
+        valueLabels: dtaFile.valueLabels ? { ...dtaFile.valueLabels } : {},
+        isDirty: dtaFile.isDirty ?? false
       };
-      
+
       const newTab: Tab = {
         ...tab,
         id: newTabId,
         fileId: newFileId,
         isActive: true
       };
-      
+
       console.log('[fileStore] Created new file and tab:', { newFileId, newTabId, dataLength: newFile.data.length });
-      
+
       const otherTabs = state.tabs.map(t => ({ ...t, isActive: false }));
-      
+
       let newTabs: Tab[];
       if (insertIndex !== undefined && insertIndex >= 0 && insertIndex <= otherTabs.length) {
         newTabs = [...otherTabs.slice(0, insertIndex), newTab, ...otherTabs.slice(insertIndex)];
@@ -346,23 +582,32 @@ export const useFileStore = create<FileState>((set, get) => ({
         newTabs = [...otherTabs, newTab];
       }
 
-      const result = {
+      return {
         files: { ...state.files, [newFileId]: newFile },
         tabs: newTabs,
         activeTabId: newTabId,
         history: { ...state.history, [newFileId]: [] },
         historyIndex: { ...state.historyIndex, [newFileId]: -1 }
       };
-      
-      console.log('[fileStore] State updated, new tabs count:', newTabs.length);
-      return result;
     });
   },
 
   getTabData: (tabId) => {
-    const { tabs, files } = get();
+    const { tabs, files, scripts, markdowns } = get();
     const tab = tabs.find(t => t.id === tabId);
     if (!tab) return null;
+
+    if (tab.type === 'script') {
+      const script = scripts[tab.fileId];
+      if (!script) return null;
+      return { tab, file: script };
+    }
+
+    if (tab.type === 'markdown') {
+      const md = markdowns[tab.fileId];
+      if (!md) return null;
+      return { tab, file: md };
+    }
 
     const file = files[tab.fileId];
     if (!file) return null;

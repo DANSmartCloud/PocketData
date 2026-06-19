@@ -3,10 +3,17 @@ import { gsap } from 'gsap';
 import styles from './GeometricBackground.module.css';
 
 const COLORS = {
-  red: ['#ff6b6b', '#ff8787'],
-  green: ['#6eeb83', '#36d399'],
-  blue: ['#64b5f6', '#38b6ff'],
-  yellow: ['#ffd166', '#ffcc80']
+  red: ['#ff4d4d', '#ff7676'],
+  green: ['#4ce066', '#36d399'],
+  blue: ['#4d9fff', '#2b7fff'],
+  yellow: ['#ffc940', '#ffd966']
+};
+// 深色模式调色板 - 极致饱和度 + 发光感
+const COLORS_DARK = {
+  red: ['#ff6b6b', '#ff8b8b'],
+  green: ['#5ee883', '#4ae09a'],
+  blue: ['#74b9ff', '#5aa0ff'],
+  yellow: ['#ffd966', '#ffe082']
 };
 const TYPES = ['circle', 'triangle', 'square', 'cross'] as const;
 const MIN_D = 0.1;
@@ -23,7 +30,8 @@ function blurPxForDepth(d: number, lowEnd: boolean) {
 function opacityForDepth(d: number) {
   const n = normDepth(d);
   const middle = 1 - Math.abs(2 * n - 1);
-  return 0.5 + 0.5 * middle;
+  // 提升基础不透明度：0.85 - 1.0（更明显的形状）
+  return 0.85 + 0.15 * middle;
 }
 
 function rand(min: number, max: number) { return Math.random() * (max - min) + min; }
@@ -32,6 +40,8 @@ function pick<T>(arr: readonly T[]): T { return arr[Math.floor(Math.random() * a
 interface GeometricBackgroundProps {
   count?: number;
   lowEnd?: boolean;
+  /** true 时使用深色调色板（适配深色主题） */
+  darkPalette?: boolean;
 }
 
 interface ShapeData {
@@ -65,10 +75,11 @@ interface ShapeState {
 }
 
 // 生成稳定的随机形状数据（只执行一次）
-function generateShapes(count: number): ShapeData[] {
+function generateShapes(count: number, darkPalette: boolean): ShapeData[] {
+  const palette = darkPalette ? COLORS_DARK : COLORS;
   return new Array(count).fill(0).map(() => {
     const t = pick(TYPES);
-    const c = pick(Object.values(COLORS));
+    const c = pick(Object.values(palette));
     const size = rand(22, 120);
     const depth = rand(0.2, 1.2);
     const x = rand(0, 100);
@@ -77,10 +88,10 @@ function generateShapes(count: number): ShapeData[] {
   });
 }
 
-export function GeometricBackground({ count = 28, lowEnd = false }: GeometricBackgroundProps) {
+export function GeometricBackground({ count = 28, lowEnd = false, darkPalette = false }: GeometricBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // 使用 ref 存储形状数据，避免重新渲染时重新生成
-  const shapesRef = useRef<ShapeData[]>(generateShapes(count));
+  const shapesRef = useRef<ShapeData[]>(generateShapes(count, darkPalette));
   const initializedRef = useRef(false);
 
   useEffect(() => {
@@ -372,7 +383,7 @@ function SVGShape({ data, lowEnd }: SVGShapeProps) {
     filter: `blur(${blurPxForDepth(depth, lowEnd)}px)`
   };
   const [c1, c2] = c;
-  const sw = Math.max(1.5, 3 * depth);
+  const sw = Math.max(2.5, 4.5 * depth);
   const half = size / 2;
   const gradId = `g${t}${size}${depth}`;
   return (
@@ -383,16 +394,25 @@ function SVGShape({ data, lowEnd }: SVGShapeProps) {
             <stop offset="0%" stopColor={c1} />
             <stop offset="100%" stopColor={c2} />
           </linearGradient>
+          <filter id={`glow${gradId}`}>
+            <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
-        {t === 'circle' && <circle cx={half} cy={half} r={half - sw} fill="none" stroke={`url(#${gradId})`} strokeWidth={sw} />}
-        {t === 'square' && <rect x={sw} y={sw} width={size - sw * 2} height={size - sw * 2} rx="8" ry="8" fill="none" stroke={`url(#${gradId})`} strokeWidth={sw} />}
-        {t === 'triangle' && <polygon points={`${half},${sw} ${size - sw},${size - sw} ${sw},${size - sw}`} fill="none" stroke={`url(#${gradId})`} strokeWidth={sw} />}
-        {t === 'cross' && (
-          <g stroke={`url(#${gradId})`} strokeWidth={sw}>
-            <line x1={sw} y1={sw} x2={size - sw} y2={size - sw} />
-            <line x1={size - sw} y1={sw} x2={sw} y2={size - sw} />
-          </g>
-        )}
+        <g filter={`url(#glow${gradId})`}>
+          {t === 'circle' && <circle cx={half} cy={half} r={half - sw} fill="none" stroke={`url(#${gradId})`} strokeWidth={sw} />}
+          {t === 'square' && <rect x={sw} y={sw} width={size - sw * 2} height={size - sw * 2} rx="8" ry="8" fill="none" stroke={`url(#${gradId})`} strokeWidth={sw} />}
+          {t === 'triangle' && <polygon points={`${half},${sw} ${size - sw},${size - sw} ${sw},${size - sw}`} fill="none" stroke={`url(#${gradId})`} strokeWidth={sw} />}
+          {t === 'cross' && (
+            <g stroke={`url(#${gradId})`} strokeWidth={sw}>
+              <line x1={sw} y1={sw} x2={size - sw} y2={size - sw} />
+              <line x1={size - sw} y1={sw} x2={sw} y2={size - sw} />
+            </g>
+          )}
+        </g>
       </svg>
     </div>
   );

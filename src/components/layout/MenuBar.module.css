@@ -71,15 +71,15 @@
   z-index: 1000;
   padding: 4px;
   margin-top: 2px;
-  transition: all 100ms ease-out;
+  transition: all 150ms ease-out;
 }
 
 .dropdownEnter {
-  animation: fadeIn 100ms ease-out;
+  animation: fadeIn 150ms ease-out;
 }
 
 .dropdownExit {
-  animation: fadeOut 100ms ease-in forwards;
+  animation: fadeOut 150ms ease-in forwards;
 }
 
 [data-theme="dark"] .dropdown {
@@ -90,7 +90,7 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+/* 取消悬停上浮设计 */
   }
   to {
     opacity: 1;
@@ -105,7 +105,18 @@
   }
   to {
     opacity: 0;
-    transform: translateY(-4px);
+/* 取消悬停上浮设计 */
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+/* 取消悬停上浮设计 */
   }
 }
 
@@ -131,6 +142,65 @@
 .menuItem.disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.checkmark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--color-primary);
+  margin-left: 16px;
+}
+
+.menuItem:hover .checkmark {
+  color: white;
+}
+
+.submenuWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.submenu {
+  position: absolute;
+  top: -4px;
+  left: 100%;
+  min-width: 220px;
+  max-width: 360px;
+  max-height: 360px;
+  overflow-y: auto;
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-elevated);
+  z-index: 1001;
+  padding: 4px;
+  animation: fadeIn 100ms ease-out;
+}
+
+.submenuClosing {
+  animation: slideUp 150ms ease-in forwards;
+}
+
+[data-theme="dark"] .submenu {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+}
+
+.submenuArrow {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.submenuActive {
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .submenuActive {
+  background: var(--color-border-dark);
 }
 
 .itemLabel {

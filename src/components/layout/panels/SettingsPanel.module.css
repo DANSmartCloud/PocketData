@@ -1,0 +1,630 @@
+.panel {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-light);
+  margin: 0;
+  padding: 0;
+}
+
+.app[data-theme="dark"] .sectionTitle {
+  color: var(--color-text-dark);
+}
+
+.sectionDesc {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.sectionDesc strong {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.resetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  align-self: flex-start;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.resetBtn:hover {
+  background: var(--color-bg-light);
+  color: var(--color-text-light);
+}
+
+.app[data-theme="dark"] .resetBtn {
+  border-color: var(--color-border-dark);
+  color: var(--color-text-secondary);
+}
+
+.app[data-theme="dark"] .resetBtn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-dark);
+}
+
+/* Picker - 组合框 + 编辑按钮同一行（编辑按钮固定在组合框右侧） */
+.picker {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+}
+
+.pickerTrigger {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 30px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  background: var(--color-card-light);
+  color: var(--color-text-light);
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-ligatures: contextual;
+  font-feature-settings: "calt" 1, "liga" 1;
+}
+
+.pickerTrigger:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 50%, var(--color-border-light));
+}
+
+.app[data-theme="dark"] .pickerTrigger {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+.pickerInput {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  background: var(--color-card-light);
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-text-light);
+  outline: none;
+  min-height: 30px;
+  box-sizing: border-box;
+}
+
+.pickerInput:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+.app[data-theme="dark"] .pickerInput {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+.pickerChevron,
+.pickerChevronOpen {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.pickerChevronOpen {
+  transform: rotate(180deg);
+}
+
+.pickerRawBtn {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 56px;
+  height: auto;
+  min-height: 30px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  background: var(--color-card-light);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  font-family: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.pickerRawBtn:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.pickerRawBtnActive {
+  color: white;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.app[data-theme="dark"] .pickerRawBtn {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-secondary);
+}
+
+/* 弹出下拉面板 */
+.pickerPopover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  max-height: 320px;
+  overflow: hidden;
+  animation: pickerPopoverIn 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app[data-theme="dark"] .pickerPopover {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes pickerPopoverIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pickerSearchRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg-light);
+}
+
+.app[data-theme="dark"] .pickerSearchRow {
+  border-bottom-color: var(--color-border-dark);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.pickerSearchIcon {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.pickerSearch {
+  flex: 1;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 11px;
+  outline: none;
+  color: var(--color-text-light);
+}
+
+.app[data-theme="dark"] .pickerSearch {
+  color: var(--color-text-dark);
+}
+
+.pickerHint {
+  padding: 6px 8px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.pickerOptions {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  max-height: 180px;
+}
+
+.pickerOption {
+  padding: 5px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* 不在这里强制 font-family，让 inline style 中的"自身字体"生效 */
+  font-variant-ligatures: contextual;
+  font-feature-settings: "calt" 1, "liga" 1;
+}
+
+.pickerOptionName {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-ligatures: contextual;
+  font-feature-settings: "calt" 1, "liga" 1;
+}
+
+.pickerOptionPreview {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  opacity: 0.85;
+  font-style: italic;
+  flex: 0 0 auto;
+  font-variant-ligatures: contextual;
+  font-feature-settings: "calt" 1, "liga" 1;
+}
+
+.pickerOption:hover {
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.app[data-theme="dark"] .pickerOption:hover {
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.pickerOptionActive {
+  background: var(--color-primary);
+  color: white;
+}
+
+.pickerOptionActive:hover {
+  background: var(--color-primary-dark);
+}
+
+.pickerOptionActive .pickerOptionPreview {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.pickerEmpty {
+  padding: 8px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.refreshBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px;
+  border: 0;
+  border-top: 1px solid var(--color-border-light);
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+}
+
+.app[data-theme="dark"] .refreshBtn {
+  border-top-color: var(--color-border-dark);
+}
+
+[data-theme="dark"] .refreshBtn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-dark);
+}
+
+.refreshBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--color-text-light);
+}
+
+/* Pane overrides */
+.paneList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.paneRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.paneLabel {
+  flex: 0 0 70px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.paneControl {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.paneInput {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 3px;
+  background: var(--color-card-light);
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--color-text-light);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.paneInput:focus {
+  border-color: var(--color-primary);
+}
+
+.app[data-theme="dark"] .paneInput {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+.paneClear {
+  width: 20px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.paneClear:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-text-light);
+}
+
+.app[data-theme="dark"] .paneClear:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-dark);
+}
+
+/* ===== 原生 select option 深色适配 ===== */
+.app[data-theme="dark"] .select option {
+  background: var(--color-card-dark);
+  color: var(--color-text-dark);
+}
+
+/* ===== picker option 深色文字显式设置 ===== */
+.app[data-theme="dark"] .pickerOption {
+  color: var(--color-text-dark);
+}
+
+.app[data-theme="dark"] .pickerOptionName {
+  color: var(--color-text-dark);
+}
+
+/* Theme */
+.themeGroup {
+  display: flex;
+  gap: 4px;
+}
+
+.themeBtn {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  background: var(--color-card-light);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--color-text-light);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.app[data-theme="dark"] .themeBtn {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+.themeBtn:hover {
+  border-color: var(--color-primary);
+}
+
+.themeBtnActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* ===== 通用控件 ===== */
+.select {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  background: var(--color-card-light);
+  color: var(--color-text-light);
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+.app[data-theme="dark"] .select {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+.settingControlRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.smallBtn {
+  min-width: 28px;
+  height: 26px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-light);
+  background: var(--color-card-light);
+  color: var(--color-text-light);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.smallBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.app[data-theme="dark"] .smallBtn {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+.smallBtnActive {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: white !important;
+}
+
+.settingValueBadge {
+  min-width: 32px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  font-family: var(--app-mono-font);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.app[data-theme="dark"] .settingValueBadge {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+/* ===== 开关（iOS 风格） ===== */
+.toggle {
+  position: relative;
+  width: 32px;
+  height: 18px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--color-border-light);
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toggleOn {
+  background: var(--color-primary) !important;
+}
+
+.toggleOff {
+  background: var(--color-border-light) !important;
+}
+
+.app[data-theme="dark"] .toggleOff {
+  background: var(--color-border-dark) !important;
+}
+
+.toggleThumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.toggleOn .toggleThumb {
+  transform: translateX(14px);
+}

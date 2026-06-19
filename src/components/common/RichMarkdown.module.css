@@ -1,0 +1,762 @@
+/* ============================================
+   RichMarkdown 共享样式
+   ============================================ */
+
+.root {
+  display: block;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-text-primary, #111827);
+}
+
+[data-theme="dark"] .root {
+  color: var(--color-text-dark, #f3f4f6);
+}
+
+/* 首次渲染纯文本占位：不使用任何解析，只做等宽展示 */
+.rawFallback {
+  margin: 0;
+  padding: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-mono, "Cascadia Code", "Fira Code", "JetBrains Mono", Consolas, monospace);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--color-text-secondary, #6b7280);
+  background: transparent;
+  border: none;
+}
+
+[data-theme="dark"] .rawFallback {
+  color: var(--color-text-dark-secondary, #9ca3af);
+}
+
+.md > * {
+  margin: 6px 0;
+}
+
+.md {
+  display: block;
+}
+
+/* ============= 标题 ============= */
+.h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 14px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border-light, #e5e7eb);
+}
+.h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 14px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--color-border-light, #e5e7eb);
+}
+.h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 12px 0 6px;
+}
+.h4,
+.h5,
+.h6 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 10px 0 4px;
+}
+
+[data-theme="dark"] .h1,
+[data-theme="dark"] .h2 {
+  border-bottom-color: var(--color-border-dark, #374151);
+}
+
+/* ============= 段落 / 文本 ============= */
+.p {
+  margin: 6px 0;
+}
+
+.inlineCode {
+  font-family: var(--font-mono, "Maple Mono", monospace);
+  font-size: 0.88em;
+  padding: 1px 5px;
+  background: color-mix(in srgb, var(--color-primary, #2563EB) 10%, transparent);
+  color: var(--color-primary, #2563EB);
+  border-radius: 3px;
+}
+
+.link {
+  color: var(--color-primary, #2563EB);
+  text-decoration: none;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.15s ease;
+}
+
+.link:hover {
+  border-bottom-color: var(--color-primary, #2563EB);
+}
+
+.img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 6px 0;
+}
+
+/* ============= 引用 ============= */
+.blockquote {
+  margin: 8px 0;
+  padding: 6px 12px;
+  border-left: 3px solid var(--color-primary, #2563EB);
+  background: color-mix(in srgb, var(--color-primary, #2563EB) 5%, transparent);
+  color: var(--color-text-secondary, #4b5563);
+  font-style: italic;
+  border-radius: 0 4px 4px 0;
+}
+
+/* ============= 列表 ============= */
+.ul,
+.ol {
+  margin: 6px 0;
+  padding-left: 24px;
+}
+
+.ul li,
+.ol li {
+  margin: 2px 0;
+}
+
+.ul li::marker,
+.ol li::marker {
+  color: var(--color-primary, #2563EB);
+}
+
+/* ============= 表格 ============= */
+.tableWrap {
+  position: relative;
+}
+
+.tableActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.tableWrap:hover .tableActions {
+  opacity: 1;
+}
+
+.tableActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--color-text-secondary, #6b7280);
+  background: transparent;
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tableActionBtn:hover {
+  background: var(--color-primary, #2563EB);
+  color: white;
+  border-color: var(--color-primary, #2563EB);
+}
+
+[data-theme="dark"] .tableActionBtn {
+  border-color: var(--color-border-dark, #374151);
+  color: var(--color-text-dark-secondary, #9ca3af);
+}
+
+[data-theme="dark"] .tableActionBtn:hover {
+  background: var(--color-primary, #2563EB);
+  color: white;
+  border-color: var(--color-primary, #2563EB);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  text-align: left;
+}
+
+.table th {
+  background: var(--color-bg-light, #f9fafb);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td {
+  border-color: var(--color-border-dark, #374151);
+}
+
+[data-theme="dark"] .table th {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.table tr:nth-child(even) td {
+  background: var(--color-bg-light, #f9fafb);
+}
+
+[data-theme="dark"] .table tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ============= 分隔线 ============= */
+.hr {
+  margin: 12px 0;
+  border: none;
+  border-top: 1px solid var(--color-border-light, #e5e7eb);
+}
+
+[data-theme="dark"] .hr {
+  border-top-color: var(--color-border-dark, #374151);
+}
+
+/* ============= 代码块 ============= */
+/* 语义化颜色变量：随主题切换深/浅配色
+   浅色：白底 / 深字（VSCode Light+ 风格）
+   深色：深底 / 浅字（VSCode Dark+ 风格） */
+.codeBlock {
+  --code-bg: #1e293b;
+  --code-fg: #e2e8f0;
+  --code-header-fg: #94a3b8;
+  --code-btn-fg: #cbd5e1;
+  --code-btn-bg: rgba(255, 255, 255, 0.06);
+  --code-btn-border: rgba(255, 255, 255, 0.08);
+  --code-btn-bg-hover: rgba(255, 255, 255, 0.12);
+  --code-btn-fg-hover: #f8fafc;
+  position: relative;
+  margin: 10px 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--code-bg);
+  color: var(--code-fg);
+  border: 1px solid color-mix(in srgb, var(--code-fg) 8%, transparent);
+}
+
+.app[data-theme="light"] .codeBlock,
+:root:not([data-theme="dark"]) .codeBlock {
+  --code-bg: #F6F8FA;
+  --code-fg: #24292F;
+  --code-header-fg: #6E7781;
+  --code-btn-fg: #57606A;
+  --code-btn-bg: rgba(0, 0, 0, 0.05);
+  --code-btn-border: rgba(0, 0, 0, 0.1);
+  --code-btn-bg-hover: rgba(0, 0, 0, 0.1);
+  --code-btn-fg-hover: #24292F;
+  border-color: #D0D7DE;
+}
+
+/* 头部 bar：放置语言标签 + 复制按钮，不再与代码重叠 */
+.codeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  height: 26px;
+  padding: 0 6px 0 10px;
+  background: color-mix(in srgb, var(--code-fg) 5%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--code-fg) 8%, transparent);
+}
+
+.codeHeaderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.codeBlock pre {
+  margin: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  font-family: var(--font-mono, "Maple Mono", monospace);
+  font-size: 13px;
+  line-height: 1.6;
+  background: transparent;
+  color: inherit;
+}
+
+.codeBlock code {
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0;
+  white-space: pre;
+}
+
+.codeLang {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--code-header-fg);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  user-select: none;
+  flex-shrink: 0;
+  min-width: 0;
+  /* 防止长语言名撑破 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.codeCopyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--code-btn-fg);
+  background: var(--code-btn-bg);
+  border: 1px solid var(--code-btn-border);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+.codeBlock:hover .codeCopyBtn,
+.codeCopyBtn:focus-visible {
+  opacity: 1;
+}
+
+.codeCopyBtn:hover {
+  background: var(--code-btn-bg-hover);
+  color: var(--code-btn-fg-hover);
+}
+
+/* ============= 语法高亮配色 =============
+   默认（浅色主题）：VSCode Light+ 风格
+   深色主题：在 [data-theme="dark"] 下覆盖为 Dark+ 风格 */
+.hlKeyword      { color: #CF222E; }
+.hlControl      { color: #CF222E; font-weight: 600; }
+.hlType         { color: #953800; }
+.hlString       { color: #0A3069; }
+.hlNumber       { color: #0550AE; }
+.hlComment      { color: #6E7781; font-style: italic; }
+.hlOperator     { color: #24292F; }
+.hlFunction     { color: #8250DF; }
+.hlVariable     { color: #0550AE; }
+.hlMacro        { color: #8250DF; }
+.hlGlobal       { color: #953800; }
+.hlLocal        { color: #953800; font-style: italic; }
+.hlBuiltin      { color: #116329; }
+.hlTag          { color: #116329; }
+.hlAttr         { color: #0550AE; }
+.hlProperty     { color: #0550AE; }
+.hlSelector     { color: #6F42C1; }
+
+[data-theme="dark"] .hlKeyword      { color: #c586c0; }
+[data-theme="dark"] .hlControl      { color: #c586c0; font-weight: 600; }
+[data-theme="dark"] .hlType         { color: #4ec9b0; }
+[data-theme="dark"] .hlString       { color: #ce9178; }
+[data-theme="dark"] .hlNumber       { color: #b5cea8; }
+[data-theme="dark"] .hlComment      { color: #6a9955; font-style: italic; }
+[data-theme="dark"] .hlOperator     { color: #d4d4d4; }
+[data-theme="dark"] .hlFunction     { color: #dcdcaa; }
+[data-theme="dark"] .hlVariable     { color: #9cdcfe; }
+[data-theme="dark"] .hlMacro        { color: #dcdcaa; }
+[data-theme="dark"] .hlGlobal       { color: #f9a825; }
+[data-theme="dark"] .hlLocal        { color: #f9a825; font-style: italic; }
+[data-theme="dark"] .hlBuiltin      { color: #4ec9b0; }
+[data-theme="dark"] .hlTag          { color: #569cd6; }
+[data-theme="dark"] .hlAttr         { color: #9cdcfe; }
+[data-theme="dark"] .hlProperty     { color: #9cdcfe; }
+[data-theme="dark"] .hlSelector     { color: #d7ba7d; }
+
+/* ============= HTML 块 ============= */
+.htmlBlock {
+  margin: 6px 0;
+}
+
+/* ============= LaTeX ============= */
+.latex {
+  font-family: "KaTeX_Main", "Maple Mono", "Microsoft YaHei", sans-serif;
+}
+
+.latexInline {
+  display: inline-block;
+  padding: 0 2px;
+}
+
+.latexBlock {
+  display: block;
+  text-align: center;
+  margin: 10px 0;
+  padding: 8px;
+  background: color-mix(in srgb, var(--color-primary, #2563EB) 4%, transparent);
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.latexZoomable {
+  cursor: zoom-in;
+  border-radius: 3px;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.latexZoomable:hover {
+  background: color-mix(in srgb, var(--color-primary, #2563EB) 8%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary, #2563EB) 25%, transparent);
+}
+
+.latexError {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.06);
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px dashed rgba(239, 68, 68, 0.35);
+  margin: 4px 0;
+}
+
+.latexErrorInline {
+  display: inline-flex;
+  max-width: 100%;
+}
+
+.latexErrorBlock {
+  display: block;
+  width: 100%;
+}
+
+.latexErrorHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  font-size: 11px;
+  color: #b91c1c;
+}
+
+.latexErrorCode {
+  display: block;
+  font-family: var(--font-mono, "Maple Mono", monospace);
+  font-size: 11px;
+  color: #7f1d1d;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 4px 6px;
+  border-radius: 3px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+[data-theme="dark"] .latexErrorCode {
+  background: rgba(0, 0, 0, 0.35);
+  color: #fecaca;
+}
+
+.latexCopyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  padding: 1px 6px;
+  font-family: inherit;
+  font-size: 10px;
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.latexCopyBtn:hover {
+  background: #ef4444;
+  color: white;
+}
+
+/* ============= Mermaid ============= */
+.mermaidList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.mermaidBlock {
+  position: relative;
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: 6px;
+  background: var(--color-card-light, #fff);
+  padding: 12px;
+  text-align: center;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .mermaidBlock {
+  background: var(--color-card-dark, #1f2937);
+  border-color: var(--color-border-dark, #374151);
+}
+
+.mermaidSvgWrap {
+  width: 100%;
+  cursor: zoom-in;
+  border-radius: 4px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mermaidSvgWrap :global(svg) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 480px;
+  margin: 0 auto;
+  vertical-align: middle;
+}
+
+.mermaidLoading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+.mermaidError {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  color: #ef4444;
+  font-size: 12px;
+  text-align: left;
+  padding: 8px 10px;
+  background: rgba(239, 68, 68, 0.06);
+  border-radius: 4px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.mermaidErrorHeader {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.mermaidErrorActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.mermaidSource {
+  margin: 0;
+  font-family: var(--font-mono, "Maple Mono", monospace);
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #7f1d1d;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 6px 8px;
+  border-radius: 3px;
+  max-height: 160px;
+  overflow: auto;
+}
+
+[data-theme="dark"] .mermaidSource {
+  background: rgba(0, 0, 0, 0.35);
+  color: #fecaca;
+}
+
+.mermaidErrorMsg {
+  margin: 0;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.08);
+  padding: 4px 6px;
+  border-radius: 3px;
+  max-height: 80px;
+  overflow: auto;
+}
+
+.mermaidRetry {
+  border: 1px solid #ef4444;
+  background: transparent;
+  color: #ef4444;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.mermaidRetry:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.mermaidCopyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  font-family: inherit;
+  font-size: 10px;
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mermaidCopyBtn:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.mermaidZoomHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--color-text-secondary, #6b7280);
+  opacity: 0.7;
+}
+
+.spin {
+  animation: rmSpin 1s linear infinite;
+}
+
+@keyframes rmSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============= Mermaid 成功渲染操作按钮 ============= */
+.mermaidActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.mermaidActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--color-text-secondary, #6b7280);
+  background: transparent;
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  opacity: 0.6;
+}
+
+.mermaidBlock:hover .mermaidActionBtn,
+.mermaidActionBtn:focus-visible {
+  opacity: 1;
+}
+
+.mermaidActionBtn:hover {
+  background: var(--color-primary, #2563EB);
+  color: white;
+  border-color: var(--color-primary, #2563EB);
+}
+
+[data-theme="dark"] .mermaidActionBtn {
+  border-color: var(--color-border-dark, #374151);
+  color: var(--color-text-dark-secondary, #9ca3af);
+}
+
+[data-theme="dark"] .mermaidActionBtn:hover {
+  background: var(--color-primary, #2563EB);
+  color: white;
+  border-color: var(--color-primary, #2563EB);
+}
+
+/* ============= LaTeX 块级公式操作按钮 ============= */
+.latexBlockWrap {
+  position: relative;
+}
+
+.latexBlockWrap .latex {
+  /* 块级公式在 wrap 内不再需要 margin/padding，由 wrap 控制 */
+}
+
+.latexActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.latexBlockWrap:hover .latexActions {
+  opacity: 1;
+}
+
+.latexActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--color-text-secondary, #6b7280);
+  background: transparent;
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.latexActionBtn:hover {
+  background: var(--color-primary, #2563EB);
+  color: white;
+  border-color: var(--color-primary, #2563EB);
+}
+
+[data-theme="dark"] .latexActionBtn {
+  border-color: var(--color-border-dark, #374151);
+  color: var(--color-text-dark-secondary, #9ca3af);
+}
+
+[data-theme="dark"] .latexActionBtn:hover {
+  background: var(--color-primary, #2563EB);
+  color: white;
+  border-color: var(--color-primary, #2563EB);
+}

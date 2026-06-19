@@ -1,15 +1,57 @@
-import { Ruler, Columns, ZoomIn, ZoomOut, FileText } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Ruler, Columns, ZoomIn, ZoomOut, FileText, Code, FileCode, CheckCircle2, Terminal, Folder } from "lucide-react";
 import { useFileStore } from "@/stores/fileStore";
 import { useUIStore } from "@/stores/uiStore";
 import { useZoomStore } from "@/stores/zoomStore";
+import { useShallow } from "zustand/react/shallow";
 import styles from "./StatusBar.module.css";
+
+interface EditorState {
+  language: string;
+  lineCount: number;
+  charCount: number;
+  isDirty: boolean;
+  tabSize: number;
+}
 
 export function StatusBar() {
   const { getActiveFile, tabs, activeTabId } = useFileStore();
-  const { operationMode, setOperationMode, selectionRange } = useUIStore();
+  const { operationMode, setOperationMode, selectionRange, terminalVisible, toggleTerminal } = useUIStore();
   const { scale, zoomIn, zoomOut, resetZoom } = useZoomStore();
 
   const activeFile = getActiveFile();
+
+  // 检测当前活动 tab 类型
+  const currentActiveTab = useFileStore(useShallow(s => {
+    return s.tabs.find(t => t.id === s.activeTabId);
+  }));
+  const isScriptMode = currentActiveTab?.type === 'script';
+  const isMarkdownMode = currentActiveTab?.type === 'markdown';
+  const isProjectMode = !currentActiveTab;
+
+  // Editor state from CodeEditor
+  const [editorState, setEditorState] = useState<EditorState>({
+    language: '',
+    lineCount: 0,
+    charCount: 0,
+    isDirty: false,
+    tabSize: 2,
+  });
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setEditorState({
+        language: detail.language ?? '',
+        lineCount: detail.lineCount ?? 0,
+        charCount: detail.charCount ?? 0,
+        isDirty: detail.isDirty ?? false,
+        tabSize: detail.tabSize ?? 2,
+      });
+    };
+    window.addEventListener('pocketdata:editor-state', handler);
+    return () => window.removeEventListener('pocketdata:editor-state', handler);
+  }, []);
 
   // 获取当前活动标签页的标题
   const activeTab = tabs.find(t => t.id === activeTabId);
@@ -17,6 +59,26 @@ export function StatusBar() {
 
   const handleModeToggle = () => {
     setOperationMode(operationMode === 'stata' ? 'excel' : 'stata');
+  };
+
+  // 代码编辑模式下切换底栏语言标识
+  const currentScriptLanguage = useFileStore(useShallow(s => {
+    const tab = s.tabs.find(t => t.id === s.activeTabId);
+    if (tab?.type === 'script' && s.scripts[tab.fileId]) {
+      return s.scripts[tab.fileId].language;
+    }
+    return null;
+  }));
+
+  const handleScriptLanguageToggle = () => {
+    const activeScriptId = (() => {
+      const tab = useFileStore.getState().tabs.find(t => t.id === useFileStore.getState().activeTabId);
+      if (tab?.type === 'script') return tab.fileId;
+      return null;
+    })();
+    if (!activeScriptId) return;
+    const newLang = currentScriptLanguage === 'python' ? 'stata' : 'python';
+    useFileStore.getState().updateScriptLanguage(activeScriptId, newLang);
   };
 
   const getSelectionDisplay = () => {
@@ -51,7 +113,59 @@ export function StatusBar() {
   return (
     <footer className={styles.statusBar}>
       <div className={styles.left}>
-        {activeFile ? (
+        {isScriptMode ? (
+          <>
+            {/* 脚本编辑模式状态 */}
+            <span className={styles.item}>
+              {editorState.language === 'Python' ? <Code size={14} /> : <FileCode size={14} />}
+              <span className={styles.itemText}>{editorState.language || 'Stata'}</span>
+            </span>
+            <span className={styles.item}>
+              <span className={styles.itemText}>行 {editorState.lineCount}</span>
+            </span>
+            <span className={styles.item}>
+              <span className={styles.itemText}>字符 {editorState.charCount}</span>
+            </span>
+            <span className={styles.item}>
+              <span className={styles.itemText}>Tab: {editorState.tabSize}</span>
+            </span>
+            {editorState.isDirty ? (
+              <span className={`${styles.item} ${styles.statusDirty}`}>已修改</span>
+            ) : editorState.language ? (
+              <span className={styles.item}><CheckCircle2 size={11} /> 已保存</span>
+            ) : null}
+            <button
+              className={`${styles.modeTag} ${currentScriptLanguage === 'stata' || !currentScriptLanguage ? styles.modeStata : styles.modePython}`}
+              onClick={handleScriptLanguageToggle}
+              title="点击切换脚本语言"
+            >
+              {currentScriptLanguage === 'python' ? 'Python' : 'Stata'}
+            </button>
+          </>
+        ) : isMarkdownMode ? (
+          <>
+            <span className={styles.item}>
+              <FileText size={14} />
+              <span className={styles.itemText}>Markdown</span>
+            </span>
+            <span className={styles.item}>
+              <span className={styles.itemText}>行 {editorState.lineCount}</span>
+            </span>
+            <span className={styles.item}>
+              <span className={styles.itemText}>字符 {editorState.charCount}</span>
+            </span>
+            {editorState.isDirty ? (
+              <span className={`${styles.item} ${styles.statusDirty}`}>已修改</span>
+            ) : (
+              <span className={styles.item}><CheckCircle2 size={11} /> 已保存</span>
+            )}
+          </>
+        ) : isProjectMode ? (
+          <span className={styles.item}>
+            <Folder size={14} />
+            <span className={styles.itemText}>项目已打开</span>
+          </span>
+        ) : activeFile ? (
           <>
             <span className={styles.item}>
               <Ruler size={14} />
@@ -73,12 +187,15 @@ export function StatusBar() {
             </button>
           </>
         ) : (
-          <span className={styles.item}>未打开文件</span>
+          <span className={styles.item}>
+            <FileText size={14} />
+            <span className={styles.itemText}>就绪</span>
+          </span>
         )}
       </div>
       
-      {/* 缩放控制 - 全端显示 */}
-      {activeFile && (
+      {/* 缩放控制 - 仅在数据模式显示 */}
+      {activeFile && !isScriptMode && (
         <div className={styles.zoomControls}>
           <button
             className={styles.zoomBtn}
@@ -108,6 +225,14 @@ export function StatusBar() {
       )}
       
       <div className={styles.right}>
+        {/* 终端切换 - 任何模式均可用 */}
+        <button
+          className={`${styles.zoomBtn} ${terminalVisible ? styles.terminalToggleActive : ''}`}
+          onClick={() => toggleTerminal()}
+          title={terminalVisible ? "关闭终端" : "打开终端"}
+        >
+          <Terminal size={14} />
+        </button>
         {/* 当前活动文件标识 */}
         {activeTabTitle && (
           <span className={`${styles.item} ${styles.fileIndicator}`}>

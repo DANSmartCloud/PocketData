@@ -1,0 +1,88 @@
+/* ============================================
+   FloatingDropdown 样式
+   - 使用 position: fixed（由 Portal 渲染到 body）
+   - 上下方向通过 .panelUp / .panelDown 切换
+   - 玻璃质感 + 阴影，主题感知
+   - 关键：Portal 到 body 后不在 .app 子树内，
+     必须用 html[data-theme="dark"] / :root[data-theme="dark"]
+     而非 .app[data-theme="dark"] 来匹配深色主题
+   ============================================ */
+
+.panel {
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px;
+  background: var(--color-card-light, #FFFFFF);
+  border: 1px solid var(--color-border-light, #E2E8F0);
+  border-radius: 8px;
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.18),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-light, #E2E8F0) transparent;
+  animation: fdPanelIn 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+/* 深色主题：用多重选择器确保 Portal 到 body 的 panel 也能匹配 */
+:root[data-theme="dark"] .panel,
+html[data-theme="dark"] .panel,
+[data-theme="dark"] .panel {
+  background: var(--color-card-dark, #1E293B);
+  border-color: var(--color-border-dark, #334155);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 方向变体：动画起点不同 */
+.panelUp {
+  transform-origin: bottom left;
+  animation-name: fdPanelUpIn;
+}
+
+.panelDown {
+  transform-origin: top left;
+  animation-name: fdPanelDownIn;
+}
+
+@keyframes fdPanelUpIn {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(-100%) scale(1); }
+}
+
+@keyframes fdPanelDownIn {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fdPanelIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Webkit 滚动条 */
+.panel::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+.panel::-webkit-scrollbar-thumb {
+  background: var(--color-border-light, #E2E8F0);
+  border-radius: 3px;
+}
+.panel::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary, #94A3B8);
+}
+:root[data-theme="dark"] .panel::-webkit-scrollbar-thumb,
+html[data-theme="dark"] .panel::-webkit-scrollbar-thumb,
+[data-theme="dark"] .panel::-webkit-scrollbar-thumb {
+  background: var(--color-border-dark, #334155);
+}

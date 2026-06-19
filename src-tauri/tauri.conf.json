@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "PocketStata",
+  "productName": "PocketData",
   "version": "1.0.0",
-  "identifier": "com.hodtech.pocket-stata",
+  "identifier": "com.pocketdata.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,23 +12,44 @@
   "app": {
     "windows": [
       {
-        "title": "PocketStata - 口袋Stata",
+        "label": "main",
+        "title": "PocketData - 口袋数据",
         "width": 1200,
         "height": 800,
-        "minWidth": 800,
-        "minHeight": 600,
+        "minWidth": 360,
+        "minHeight": 480,
         "resizable": true,
         "fullscreen": false,
         "decorations": false,
-        "dragDropEnabled": false
+        "dragDropEnabled": true,
+        "visible": true
       }
     ],
     "security": {
       "csp": null
     }
   },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "../public/*",
+      "../public/*.*"
+    ],
+    "category": "Productivity",
+    "shortDescription": "跨平台全兼容数据处理工具",
+    "longDescription": "PocketData 是一款跨平台（Windows / macOS / Linux / iOS / Android）的全兼容 Stata 数据查看、处理与分析工具。"
+  },
   "plugins": {
     "dialog": null,
-    "fs": null
+    "fs": null,
+    "clipboard-manager": null
   }
 }

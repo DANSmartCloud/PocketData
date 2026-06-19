@@ -1,0 +1,776 @@
+.panel {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-light);
+  margin: 0;
+  padding: 0;
+}
+
+.app[data-theme="dark"] .sectionTitle {
+  color: var(--color-text-dark);
+}
+
+.sectionDesc {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.sectionDesc strong {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  background: var(--color-card-light);
+  font-family: var(--app-mono-font);
+  font-size: 11px;
+  color: var(--color-text-light);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+.app[data-theme="dark"] .input,
+.app[data-theme="dark"] .textarea {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 70px;
+  line-height: 1.5;
+}
+
+.keyWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.keyWrap .input {
+  padding-right: 32px;
+}
+
+.keyToggle {
+  position: absolute;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.keyToggle:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-text-light);
+}
+
+.app[data-theme="dark"] .keyToggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-dark);
+}
+
+.providerGroup {
+  display: flex;
+  gap: 4px;
+}
+
+.providerBtn {
+  flex: 1;
+  padding: 5px 8px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  background: var(--color-card-light);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--color-text-light);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.app[data-theme="dark"] .providerBtn {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+.providerBtn:hover {
+  border-color: var(--color-primary);
+}
+
+.providerBtnActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.testBtn,
+.resetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.testBtn {
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  color: white;
+}
+
+.testBtn:hover {
+  background: var(--color-primary-dark);
+}
+
+.testBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.resetBtn {
+  background: transparent;
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text-secondary);
+}
+
+.resetBtn:hover {
+  background: var(--color-bg-light);
+  color: var(--color-text-light);
+}
+
+.app[data-theme="dark"] .resetBtn {
+  border-color: var(--color-border-dark);
+}
+
+.app[data-theme="dark"] .resetBtn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-dark);
+}
+
+.testResult {
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--app-mono-font);
+  word-break: break-all;
+}
+
+.testResultOk {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.testResultFail {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+.app[data-theme="dark"] .testResultOk {
+  color: #6ee7b7;
+}
+
+.app[data-theme="dark"] .testResultFail {
+  color: #fca5a5;
+}
+
+.notice {
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.noticeOk {
+  color: #047857;
+}
+
+.noticeWarn {
+  color: #b45309;
+}
+
+.app[data-theme="dark"] .noticeOk {
+  color: #6ee7b7;
+}
+
+.app[data-theme="dark"] .noticeWarn {
+  color: #fcd34d;
+}
+
+/* ============================================
+   配置管理（预设） - 紧凑的列表 / 操作按钮
+   ============================================ */
+.presetSaveRow {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.presetSaveRow .input {
+  flex: 1;
+}
+
+.presetActions {
+  display: flex;
+  gap: 4px;
+}
+
+.presetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  background: transparent;
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text-light);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.app[data-theme="dark"] .presetBtn {
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+.presetBtn:hover:not(:disabled) {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.presetBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.presetEmpty {
+  padding: 12px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-light);
+  border: 1px dashed var(--color-border-light);
+  border-radius: 4px;
+}
+
+.app[data-theme="dark"] .presetEmpty {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--color-border-dark);
+}
+
+.presetList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.presetItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  gap: 8px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.presetItem:hover {
+  border-color: var(--color-primary);
+}
+
+.app[data-theme="dark"] .presetItem {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-dark);
+}
+
+.presetInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.presetName {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app[data-theme="dark"] .presetName {
+  color: var(--color-text-dark);
+}
+
+.presetMeta {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  font-family: var(--app-mono-font, monospace);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.presetRenameInput {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 2px 6px;
+  border: 1px solid var(--color-primary);
+  border-radius: 3px;
+  background: var(--color-bg-light);
+  color: var(--color-text-light);
+  outline: none;
+  width: 100%;
+}
+
+.app[data-theme="dark"] .presetRenameInput {
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--color-text-dark);
+}
+
+.presetBtns {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.presetIconBtn {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.presetIconBtn:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* ============================================
+   当前激活配置大卡片
+   ============================================ */
+.activeCard {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 8%, transparent) 0%, transparent 100%);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border-light));
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.app[data-theme="dark"] .activeCard {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 12%, transparent) 0%, rgba(255,255,255,0.02) 100%);
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border-dark));
+}
+
+.activeCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.activeCardIcon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-primary) 15%, var(--color-card-light));
+  color: var(--color-primary);
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.app[data-theme="dark"] .activeCardIcon {
+  background: color-mix(in srgb, var(--color-primary) 22%, var(--color-card-dark));
+}
+
+.activeCardInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.activeCardTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app[data-theme="dark"] .activeCardTitle {
+  color: var(--color-text-dark);
+}
+
+.activeCardMeta {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  font-family: var(--app-mono-font);
+  margin-top: 2px;
+}
+
+.activeCardMeta code {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.activeCardStatus {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.statusOk { color: #16a34a; }
+.statusWarn { color: #b45309; }
+
+.app[data-theme="dark"] .statusOk { color: #4ade80; }
+.app[data-theme="dark"] .statusWarn { color: #fbbf24; }
+
+.activeCardActions {
+  display: flex;
+  gap: 6px;
+}
+
+.primaryAction,
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: 1;
+  padding: 7px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.primaryAction {
+  background: var(--color-primary);
+  color: white;
+  border: 1px solid var(--color-primary);
+}
+
+.primaryAction:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.secondaryAction {
+  background: transparent;
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text-light);
+}
+
+.secondaryAction:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.app[data-theme="dark"] .secondaryAction {
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+.saveHint {
+  font-size: 11px;
+  color: #16a34a;
+  font-weight: 500;
+  padding: 4px 8px;
+  background: color-mix(in srgb, #16a34a 12%, transparent);
+  border-radius: 4px;
+  text-align: center;
+  animation: saveHintIn 200ms ease-out;
+}
+
+.app[data-theme="dark"] .saveHint {
+  color: #4ade80;
+  background: color-mix(in srgb, #16a34a 18%, transparent);
+}
+
+@keyframes saveHintIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 8px;
+  margin-left: 4px;
+}
+
+.presetImportExport {
+  display: flex;
+  gap: 4px;
+}
+
+.iconAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-family: inherit;
+  border: 1px solid var(--color-border-light);
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.iconAction:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.iconAction:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.app[data-theme="dark"] .iconAction {
+  border-color: var(--color-border-dark);
+}
+
+.advancedToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-family: inherit;
+  background: transparent;
+  border: 1px dashed var(--color-border-light);
+  color: var(--color-text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all 0.15s ease;
+}
+
+.advancedToggle:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.app[data-theme="dark"] .advancedToggle {
+  border-color: var(--color-border-dark);
+}
+
+.advancedPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+}
+
+.app[data-theme="dark"] .advancedPanel {
+  background: rgba(0, 0, 0, 0.2);
+  border-color: var(--color-border-dark);
+}
+
+.providerBtnIcon {
+  flex-shrink: 0;
+}
+
+/* ========== OpenAI 兼容模式：品牌图标选择器 ========== */
+.brandGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.brandBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brandBtn:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 50%, var(--color-border-light));
+  color: var(--color-text-light);
+}
+
+.app[data-theme="dark"] .brandBtn {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-secondary-dark, #94a3b8);
+}
+
+.brandBtnActive {
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-card-light)) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+  font-weight: 600;
+}
+
+.app[data-theme="dark"] .brandBtnActive {
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent) !important;
+}
+
+.brandBtn > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hint {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.presetItemActive {
+  border-color: var(--color-primary) !important;
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-card-light)) !important;
+}
+
+.app[data-theme="dark"] .presetItemActive {
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-card-dark)) !important;
+}
+
+.presetIcon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.presetItem .activeStar {
+  color: var(--color-primary);
+  fill: var(--color-primary);
+  margin-right: 3px;
+  vertical-align: middle;
+}

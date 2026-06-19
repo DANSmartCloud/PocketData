@@ -27,9 +27,12 @@ function GithubIcon({ size = 18 }: { size?: number }) {
 export function AboutPage() {
   const navigate = useNavigate();
   const { theme } = useUIStore();
+  const resolvedTheme = theme === 'system'
+    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    : theme;
   const [isExiting, setIsExiting] = useState(false);
-  const version = "1.0.0";
-  const buildDate = "2025-01-20";
+  const version = "2.7.3";
+  const buildDate = "2026-06-20";
 
   const handleBack = () => {
     setIsExiting(true);
@@ -39,9 +42,14 @@ export function AboutPage() {
   };
 
   return (
-    <div className={`${styles.page} ${theme === 'dark' ? styles.dark : ''} ${isExiting ? styles.exiting : ''}`}>
-      {/* 几何动态背景 */}
-      <GeometricBackground count={20} lowEnd={false} />
+    <div className={`${styles.page} ${resolvedTheme === 'dark' ? styles.dark : ''} ${isExiting ? styles.exiting : ''}`}>
+      {/* 动态彩色光斑背景 - 自动适配深色 */}
+      <div className={`${styles.blob} ${styles.blob1}`} />
+      <div className={`${styles.blob} ${styles.blob2}`} />
+      <div className={`${styles.blob} ${styles.blob3}`} />
+
+      {/* 几何动态背景 - 根据主题使用对应调色板 */}
+      <GeometricBackground count={20} lowEnd={false} darkPalette={resolvedTheme === 'dark'} />
 
       {/* 悬浮返回按钮 */}
       <button className={styles.backBtn} onClick={handleBack}>
@@ -57,8 +65,8 @@ export function AboutPage() {
               <div className={styles.logoGlow} />
               <Logo size={100} className={styles.heroLogo} />
             </div>
-            <h1 className={styles.title}>PocketStata</h1>
-            <p className={styles.tagline}>轻量级 Stata 数据文件查看器</p>
+            <h1 className={styles.title}>PocketData</h1>
+            <p className={styles.tagline}>跨平台全兼容数据处理工具</p>
             <div className={styles.versionBadge}>
               <span className={styles.versionText}>v{version}</span>
               <span className={styles.divider} />

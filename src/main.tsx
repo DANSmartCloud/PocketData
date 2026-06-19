@@ -3,7 +3,11 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./App";
 import { AboutPage } from "./pages/AboutPage";
+import { clearDebugCache } from "./utils/clearDebugCache";
 import "./styles/global.css";
+
+// 启动时清除 debug 缓存（仅 Vite dev 模式或 ?cleardebug=1 时生效）
+clearDebugCache();
 
 // 检测是否为拖拽预览模式
 const isDragPreview = typeof window !== 'undefined' 

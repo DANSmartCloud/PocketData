@@ -1,0 +1,519 @@
+/* ============================================
+   PowerShell 终端 - VS Code 风格
+   ============================================
+   主题适配策略：
+   - 标签栏 / 头部 / 上下文菜单：使用全站 CSS 变量，自动跟随 light/dark 主题
+   - 输出区与提示符：使用语义化颜色变量 (--term-*)，
+     在 light 主题下为白底深字、dark 主题下为深底浅字，
+     并在用户更换主题色（accent）时自动跟随
+   ============================================ */
+
+/* ============================================
+   终端语义化颜色变量（随主题切换）
+   - data-theme 在 <html> 上，使用 :root 选中
+   - 同时支持 html[...] 与 [data-theme="..."] 兜底
+     （兼容 vite CSS module 在某些场景对 :root 的处理）
+   ============================================ */
+:root,
+html,
+[data-theme] {
+  /* 默认（深色）— 当 html 没有 data-theme 时 */
+  --term-bg: #0F172A;
+  --term-fg: #E2E8F0;
+  --term-border: #334155;
+  --term-input-fg: #E2E8F0;
+  --term-cursor-bg: #60A5FA;
+  --term-cursor-fg: #60A5FA;
+  --term-prompt-fg: #60A5FA;
+  --term-prompt-path-fg: #93C5FD;
+  --term-selection-bg: color-mix(in srgb, #60A5FA 35%, transparent);
+  --term-border-top: #1E293B;
+}
+
+/* 浅色主题：白底深字（贴近本软件 UI 风格） */
+:root[data-theme="light"],
+html[data-theme="light"],
+[data-theme="light"] {
+  --term-bg: #FFFFFF;
+  --term-fg: #020617;
+  --term-border: #94A3B8;
+  --term-input-fg: #020617;
+  --term-cursor-bg: #1D4ED8;
+  --term-cursor-fg: #1D4ED8;
+  --term-prompt-fg: #1D4ED8;
+  --term-prompt-path-fg: #1E40AF;
+  --term-selection-bg: color-mix(in srgb, #1D4ED8 22%, transparent);
+  --term-border-top: #CBD5E1;
+}
+
+/* 深色主题：深色（贴近本软件 UI 风格） */
+:root[data-theme="dark"],
+html[data-theme="dark"],
+[data-theme="dark"] {
+  --term-bg: #0F172A;
+  --term-fg: #E2E8F0;
+  --term-border: #334155;
+  --term-input-fg: #E2E8F0;
+  --term-cursor-bg: #60A5FA;
+  --term-cursor-fg: #60A5FA;
+  --term-prompt-fg: #60A5FA;
+  --term-prompt-path-fg: #93C5FD;
+  --term-selection-bg: color-mix(in srgb, #60A5FA 35%, transparent);
+  --term-border-top: #1E293B;
+}
+
+/* ============================================
+   隐藏占位（保留 DOM 以保存 state）
+   ============================================ */
+.hidden {
+  display: none;
+}
+
+/* ============================================
+   容器 - 标签栏与输出区使用各自独立的背景
+   - 标签栏：跟随应用卡片背景（融入主题）
+   - 输出区：保持终端原生观感（深/浅色 PowerShell 配色）
+   ============================================ */
+.container {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-card-light, #FFFFFF);
+  border-top: 1px solid var(--term-border-top, #E2E8F0);
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+  font-family: var(--app-mono-font, "Maple Mono", "Cascadia Code", "JetBrains Mono", Consolas, monospace);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-ligatures: contextual;
+  color: var(--color-text-light, #0F172A);
+}
+
+:root[data-theme="dark"] .container,
+html[data-theme="dark"] .container,
+[data-theme="dark"] .container {
+  background: var(--color-card-dark, #1E293B);
+  border-top-color: var(--term-border-top, #1E293B);
+  color: var(--color-text-dark, #E2E8F0);
+}
+
+/* ============================================
+   拖拽手柄
+   ============================================ */
+.resizeHandle {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: ns-resize;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resizeHandle:hover,
+.resizeHandleActive {
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.resizeHandleBar {
+  width: 32px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-border-light);
+  transition: all var(--transition-fast);
+}
+
+:root[data-theme="dark"] .resizeHandleBar {
+  background: var(--color-border-dark);
+}
+
+.resizeHandle:hover .resizeHandleBar,
+.resizeHandleActive .resizeHandleBar {
+  background: var(--color-primary);
+  width: 48px;
+}
+
+/* ============================================
+   头部 / 标签栏
+   - 跟随应用卡片背景与文字色（融入主题）
+   ============================================ */
+.header {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  height: 36px;
+  background: var(--color-bg-light);
+  border-bottom: 1px solid var(--color-border-light);
+  flex-shrink: 0;
+  padding: 0;
+  user-select: none;
+  color: var(--color-text-light);
+}
+
+:root[data-theme="dark"] .header {
+  background: rgba(0, 0, 0, 0.18);
+  border-bottom-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+.tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.15s ease;
+}
+
+.tabs:hover {
+  scrollbar-color: color-mix(in srgb, var(--term-fg) 40%, transparent) transparent;
+}
+
+.tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tabs::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 2px;
+  transition: background 0.15s ease;
+}
+
+.tabs:hover::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--term-fg) 40%, transparent);
+}
+
+/* 标签 - 与终端前景色联动，而非使用全站 primary 色 */
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  padding: 0 12px;
+  background: transparent;
+  border-right: 1px solid color-mix(in srgb, var(--term-fg) 10%, transparent);
+  cursor: pointer;
+  color: color-mix(in srgb, var(--term-fg) 65%, transparent);
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+  flex-shrink: 0;
+  position: relative;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  max-width: 200px;
+}
+
+.tab:hover {
+  background: color-mix(in srgb, var(--term-fg) 10%, transparent);
+  color: var(--term-fg);
+}
+
+.tabActive {
+  background: var(--term-bg, #FFFFFF);
+  color: var(--term-fg, #0F172A);
+}
+
+/* 浅色主题激活态文字：与终端前景色一致 */
+:root[data-theme="light"] .tabActive,
+html[data-theme="light"] .tabActive,
+[data-theme="light"] .tabActive {
+  color: var(--term-fg, #0F172A);
+}
+
+/* 深色主题激活态：与终端背景一致 */
+:root[data-theme="dark"] .tabActive,
+html[data-theme="dark"] .tabActive,
+[data-theme="dark"] .tabActive {
+  color: var(--term-fg, #E2E8F0);
+}
+
+/* 顶部条形指示器 - 紧贴标签页顶部，使用全站 primary 强调色（随主题/强调色变化） */
+.tabActive::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: var(--color-primary, #2563EB);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--color-primary, #2563EB) 55%, transparent);
+  animation: termTabIndicatorIn 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes termTabIndicatorIn {
+  from {
+    transform: scaleX(0.3);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* 标签上的图标与名称 */
+.tabName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabSpinner {
+  animation: spin 1.1s linear infinite;
+  opacity: 0.6;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.tabClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 3px;
+  opacity: 0.5;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.tabClose:hover {
+  background: color-mix(in srgb, var(--term-fg) 15%, transparent);
+  opacity: 1;
+}
+
+.addTabBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: color-mix(in srgb, var(--term-fg) 65%, transparent);
+  cursor: pointer;
+  border-right: 1px solid color-mix(in srgb, var(--term-fg) 10%, transparent);
+  transition: all var(--transition-fast);
+}
+
+.addTabBtn:hover {
+  background: color-mix(in srgb, var(--term-fg) 10%, transparent);
+  color: var(--term-fg);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+.headerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 100%;
+  border: none;
+  background: none;
+  color: color-mix(in srgb, var(--term-fg) 65%, transparent);
+  cursor: pointer;
+  border-left: 1px solid color-mix(in srgb, var(--term-fg) 10%, transparent);
+  transition: all var(--transition-fast);
+}
+
+.headerBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--term-fg) 10%, transparent);
+  color: var(--term-fg);
+}
+
+.headerBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   xterm.js 终端渲染容器
+   - 每个 session 对应一个 .xtermHost
+   - xterm.js 自身控制滚动 / 选中 / 复制
+   - 背景与前景色由 xterm 自身 theme 决定（深/浅主题联动）
+   - 显式 fallback：light=#FFFFFF / dark=#0F172A
+   ============================================ */
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: var(--term-bg, #FFFFFF);
+  font-family: "Maple Mono", "JetBrains Mono", "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+
+:root[data-theme="dark"] .body,
+html[data-theme="dark"] .body,
+[data-theme="dark"] .body {
+  background: var(--term-bg, #0F172A);
+}
+
+.xtermHost {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  padding: 4px 0 4px 12px;
+  background: var(--term-bg, #FFFFFF);
+  position: relative;
+}
+
+:root[data-theme="dark"] .xtermHost,
+html[data-theme="dark"] .xtermHost,
+[data-theme="dark"] .xtermHost {
+  background: var(--term-bg, #0F172A);
+}
+
+.xtermHost .xterm,
+.xtermHost .xterm-viewport,
+.xtermHost .xterm-screen {
+  background: transparent !important;
+}
+
+.xtermHost .xterm-viewport {
+  background: transparent !important;
+}
+
+.xtermHost .xterm-viewport::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.xtermHost .xterm-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+.xtermHost .xterm-viewport::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--term-fg) 30%, transparent);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.xtermHost .xterm-viewport::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--term-fg) 50%, transparent);
+  background-clip: padding-box;
+}
+.xtermHost .xterm-viewport::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* 标签上的"已退出"红点 */
+.exitedDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  margin-left: 2px;
+  flex-shrink: 0;
+}
+
+:root[data-theme="light"] .exitedDot {
+  background: #dc2626;
+}
+
+/* ============================================
+   右键上下文菜单
+   ============================================ */
+.contextMenu {
+  position: fixed;
+  z-index: 9999;
+  min-width: 200px;
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text-light);
+}
+
+:root[data-theme="dark"] .contextMenu {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.contextItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.contextItem:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.contextItem:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.contextIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.contextLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.contextShortcut {
+  font-size: 11px;
+  opacity: 0.5;
+  margin-left: 12px;
+  flex-shrink: 0;
+}
+
+.contextDivider {
+  height: 1px;
+  background: var(--color-border-light);
+  margin: 4px 6px;
+}
+
+:root[data-theme="dark"] .contextDivider {
+  background: var(--color-border-dark);
+}

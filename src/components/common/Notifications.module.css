@@ -1,0 +1,316 @@
+/* ============================================
+   Toast 堆叠通知系统 —— 完全复刻 toast.html
+   - 垂直居中容器 (top:50% / translateY(-50%))
+   - 3 个聚焦区 + 5 个堆叠层级 (非焦点区非线性 sqrt 间距)
+   - slideInLeft / slideOutLeft 动画
+   - 类型色：左侧 4px 边框 + 底色
+   - 倒计时进度条沿底边
+   ============================================ */
+
+.container {
+  position: fixed;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%) !important;
+  z-index: 9999;
+  width: 280px;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  pointer-events: auto;
+  right: auto;
+  bottom: auto;
+  overflow: visible;
+}
+
+.stack {
+  position: relative;
+  left: 0 !important;
+  top: 0;
+  transform: none !important;
+  width: 100%;
+  height: 300px; /* 足够的渲染空间 */
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* === Toast 基础 === */
+.toast {
+  position: absolute;
+  left: 0 !important;
+  right: auto !important;
+  top: 0;
+  width: 100%;
+  height: 46px;
+  padding: 0 12px 0 16px;
+  margin: 0 !important;
+  background: rgba(51, 51, 51, 0.95);
+  color: #fff;
+  border-radius: 8px;
+  border-left: 4px solid #409eff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  z-index: 1;
+  opacity: 0;
+  transform: translateX(-100%) scale(0.9);
+  filter: blur(3px);
+  pointer-events: none;
+  transition: all 0.3s ease;
+  visibility: hidden;
+  text-align: left !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.2;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  overflow: hidden;
+}
+
+[data-theme="light"] .toast,
+:root:not([data-theme="dark"]) .toast {
+  background: rgba(255, 255, 255, 0.96);
+  color: #1f2328;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* === 聚焦 === */
+.focus {
+  z-index: 100 !important;
+  opacity: 1 !important;
+  transform: translateX(0) scale(1) !important;
+  filter: blur(0) !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  left: 0 !important;
+}
+
+/* === 堆叠层级 1 === */
+.layer1 {
+  z-index: 99;
+  opacity: 0.85 !important;
+  transform: translateX(0) scale(0.97) !important;
+  filter: blur(0.5px) !important;
+  pointer-events: auto;
+  visibility: visible !important;
+  left: 0 !important;
+}
+
+/* === 堆叠层级 2 === */
+.layer2 {
+  z-index: 98;
+  opacity: 0.75 !important;
+  transform: translateX(0) scale(0.94) !important;
+  filter: blur(1.0px) !important;
+  pointer-events: auto;
+  visibility: visible !important;
+  left: 0 !important;
+}
+
+/* === 堆叠层级 3 === */
+.layer3 {
+  z-index: 97;
+  opacity: 0.65 !important;
+  transform: translateX(0) scale(0.91) !important;
+  filter: blur(1.5px) !important;
+  pointer-events: auto;
+  visibility: visible !important;
+  left: 0 !important;
+}
+
+/* === 堆叠层级 4 === */
+.layer4 {
+  z-index: 96;
+  opacity: 0.55 !important;
+  transform: translateX(0) scale(0.88) !important;
+  filter: blur(2.0px) !important;
+  pointer-events: auto;
+  visibility: visible !important;
+  left: 0 !important;
+}
+
+/* === 堆叠层级 5 === */
+.layer5 {
+  z-index: 95;
+  opacity: 0.45 !important;
+  transform: translateX(0) scale(0.85) !important;
+  filter: blur(2.5px) !important;
+  pointer-events: auto;
+  visibility: visible !important;
+  left: 0 !important;
+}
+
+/* === 超出 5 层隐藏 === */
+.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  left: 0 !important;
+}
+
+/* === 类型色 === */
+.type_info    { border-left-color: #409eff; }
+.type_success { border-left-color: #67c23a; }
+.type_warning { border-left-color: #e6a23c; }
+.type_error   { border-left-color: #f56c6c; }
+
+/* === 入场动画 === */
+.animateIn {
+  animation: slideInLeft 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  pointer-events: auto;
+  visibility: visible !important;
+  left: 0 !important;
+}
+
+/* === 退出动画 === */
+.animateOut {
+  animation: slideOutLeft 0.4s ease forwards;
+  left: 0 !important;
+  pointer-events: none;
+}
+
+@keyframes slideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%) scale(0.9);
+    filter: blur(3px);
+    visibility: visible;
+    left: 0 !important;
+  }
+  80% {
+    opacity: 1;
+    transform: translateX(5px) scale(1.02);
+    filter: blur(0);
+    left: 0 !important;
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+    visibility: visible;
+    left: 0 !important;
+  }
+}
+
+@keyframes slideOutLeft {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+    visibility: visible;
+    left: 0 !important;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-100%) scale(0.9);
+    filter: blur(3px);
+    visibility: hidden;
+    left: 0 !important;
+  }
+}
+
+/* === 内部元素 === */
+.iconWrap {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="light"] .iconWrap,
+:root:not([data-theme="dark"]) .iconWrap {
+  color: rgba(31, 35, 40, 0.75);
+}
+
+.type_info    .iconWrap { color: #409eff; background: rgba(64, 158, 255, 0.10); }
+.type_success .iconWrap { color: #67c23a; background: rgba(103, 194, 58, 0.10); }
+.type_warning .iconWrap { color: #e6a23c; background: rgba(230, 162, 60, 0.10); }
+.type_error   .iconWrap { color: #f56c6c; background: rgba(245, 108, 108, 0.10); }
+
+.message {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.close {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+  opacity: 0;
+}
+
+[data-theme="light"] .close,
+:root:not([data-theme="dark"]) .close {
+  color: rgba(31, 35, 40, 0.45);
+}
+
+.toast:hover .close,
+.focus .close {
+  opacity: 1;
+}
+
+.close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+[data-theme="light"] .close:hover,
+:root:not([data-theme="dark"]) .close:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #1f2328;
+}
+
+/* === 倒计时进度条（位于 toast 底边） === */
+.toast::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+[data-theme="light"] .toast::after,
+:root:not([data-theme="dark"]) .toast::after {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* === 移动端 === */
+@media (max-width: 768px) {
+  .container {
+    left: 12px;
+    width: 260px;
+  }
+  .stack { height: 280px; }
+  .toast {
+    height: 44px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    left: 8px;
+    width: calc(100vw - 16px);
+    max-width: 280px;
+  }
+}

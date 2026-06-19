@@ -1,0 +1,322 @@
+/* ============================================
+   面包屑 - 幽灵按钮 + 图标 + 同级对象弹出
+   ============================================ */
+
+.breadcrumbBar {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 8px;
+  background: var(--color-card-light);
+  border-bottom: 1px solid var(--color-border-light);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+[data-theme="dark"] .breadbreadcrumbBar,
+[data-theme="dark"] .breadcrumbBar {
+  background: var(--color-card-dark);
+  border-bottom-color: var(--color-border-dark);
+}
+
+.breadcrumbItems {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-light) transparent;
+}
+
+.breadcrumbItems::-webkit-scrollbar {
+  height: 3px;
+}
+
+.breadcrumbItems::-webkit-scrollbar-thumb {
+  background: var(--color-border-light);
+  border-radius: 2px;
+}
+
+[data-theme="dark"] .breadcrumbItems::-webkit-scrollbar-thumb {
+  background: var(--color-border-dark);
+}
+
+.crumbWrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.crumbBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 120ms ease;
+  white-space: nowrap;
+  max-width: 240px;
+}
+
+.crumbBtn:hover {
+  background: var(--color-bg-light);
+  border-color: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .crumbBtn:hover {
+  background: var(--color-bg-dark);
+  border-color: var(--color-border-dark);
+}
+
+.crumbActive {
+  color: var(--color-primary) !important;
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 22%, transparent) !important;
+}
+
+.crumbActive:hover {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent) !important;
+}
+
+.crumbIcon {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  opacity: 0.85;
+}
+
+.crumbLabel {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.crumbChevron {
+  flex-shrink: 0;
+  opacity: 0.5;
+  margin-left: 2px;
+}
+
+.breadcrumbSep {
+  flex-shrink: 0;
+  margin: 0 2px;
+  color: var(--color-text-secondary);
+  opacity: 0.4;
+}
+
+.breadcrumbEmpty {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.breadcrumbPos {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 8px;
+  padding: 0 6px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  height: 20px;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .breadcrumbPos {
+  background: var(--color-bg-dark);
+  border-color: var(--color-border-dark);
+}
+
+.dirtyIndicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  flex-shrink: 0;
+  margin-left: 6px;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.5);
+}
+
+/* ============================================
+   同级对象弹层
+   ============================================ */
+.siblingMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 220px;
+  max-width: 360px;
+  max-height: 360px;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-card-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-elevated);
+  z-index: 50;
+  animation: crumbPop 120ms ease-out;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .siblingMenu {
+  background: var(--color-card-dark);
+  border-color: var(--color-border-dark);
+}
+
+@keyframes crumbPop {
+  from {
+    opacity: 0;
+/* 取消悬停上浮设计 */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.siblingHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-light);
+  border-bottom: 1px solid var(--color-border-light);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .siblingHeader {
+  background: var(--color-bg-dark);
+  border-bottom-color: var(--color-border-dark);
+}
+
+.siblingClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all 120ms ease;
+}
+
+.siblingClose:hover {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .siblingClose:hover {
+  background: var(--color-border-dark);
+}
+
+.siblingList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.siblingItem {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 5px 8px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: all 100ms ease;
+}
+
+.siblingItem:hover {
+  background: var(--color-bg-light);
+  border-color: var(--color-border-light);
+}
+
+[data-theme="dark"] .siblingItem:hover {
+  background: var(--color-bg-dark);
+  border-color: var(--color-border-dark);
+}
+
+.siblingItemActive {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent) !important;
+  color: var(--color-primary) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent) !important;
+}
+
+.siblingIcon {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  opacity: 0.85;
+}
+
+.siblingName {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.siblingEmpty {
+  padding: 14px 8px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  font-style: italic;
+}
+
+/* ============================================
+   移动端
+   ============================================ */
+@media (max-width: 768px) {
+  .breadcrumbBar {
+    height: 26px;
+    padding: 0 4px;
+  }
+
+  .crumbBtn {
+    max-width: 120px;
+    height: 20px;
+    padding: 0 5px;
+    font-size: 10px;
+  }
+
+  .crumbLabel {
+    max-width: 80px;
+  }
+
+  .siblingMenu {
+    min-width: 180px;
+    max-width: 280px;
+  }
+}

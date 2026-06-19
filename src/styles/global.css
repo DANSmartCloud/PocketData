@@ -1,6 +1,8 @@
 :root {
   --color-primary: #2563EB;
   --color-primary-dark: #1D4ED8;
+  --color-primary-light: #BFDBFE;
+  --color-primary-contrast: #FFFFFF;
   --color-secondary: #64748B;
   --color-success: #10B981;
   --color-warning: #F59E0B;
@@ -11,11 +13,21 @@
   --color-card-dark: #1E293B;
   --color-text-light: #1E293B;
   --color-text-dark: #E2E8F0;
+  --color-text-primary: #1E293B;
   --color-text-secondary: #94A3B8;
   --color-border-light: #E2E8F0;
   --color-border-dark: #334155;
-  --font-sans: "PingFang SC", "Microsoft YaHei", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+  /* 字体设置：通过 JS 动态注入 CSS 变量 --app-font / --app-mono-font，
+     这里只提供默认值。
+       --app-font       全局 UI 字体：使用 Maple Mono（NF CN），
+                         内部带 CJK / 中日韩 字形 + 编程连字 + Nerd Font 图标，
+                         一套字体即可同时渲染中英文 UI / 代码 / 终端。
+       --app-mono-font  全局等宽字体：与 --app-font 保持一致（Maple Mono 即等宽）。
+     使用 @font-face 在文件底部加载本地字体资源。 */
+  --app-font: "Maple Mono", "Maple Mono NF CN", "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
+  --app-mono-font: "Maple Mono", "Maple Mono NF CN", "JetBrains Mono", "Cascadia Code", "Consolas", "Courier New", monospace;
+  --font-sans: var(--app-font);
+  --font-mono: var(--app-mono-font);
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
@@ -39,6 +51,54 @@
   --touch-target-min: 44px;
 }
 
+/* ============================================
+   字体注册：Maple Mono（NF CN 简体）
+   实际文件名是 -NF-CN-* 但 TTF 内部的 family 是 "Maple Mono"
+   加载了 NF CN 版本（带 CJK / 中日韩 字形 + 编程连字 + Nerd Font 图标）
+   ============================================ */
+@font-face {
+  font-family: "Maple Mono";
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url("/fonts/MapleMono-NF-CN-ExtraLight.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Maple Mono";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/MapleMono-NF-CN-Light.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Maple Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/MapleMono-NF-CN-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Maple Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/MapleMono-NF-CN-Medium.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Maple Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/MapleMono-NF-CN-SemiBold.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Maple Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/MapleMono-NF-CN-Bold.ttf") format("truetype");
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -54,7 +114,7 @@ html, body, #root {
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--app-font);
   font-size: 14px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -68,11 +128,61 @@ body {
   height: 100%;
   background: var(--color-bg-light);
   color: var(--color-text-light);
+
+  /* ===== 终端 ANSI 16 色（与 Windows Terminal/VSCode 一致） ===== */
+  --terminal-bg: #0C0C0C;
+  --terminal-fg: #CCCCCC;
+  --ansiBlack: #0C0C0C;
+  --ansiRed: #C50F1F;
+  --ansiGreen: #13A10E;
+  --ansiYellow: #C19C00;
+  --ansiBlue: #0037DA;
+  --ansiMagenta: #881798;
+  --ansiCyan: #3A96DD;
+  --ansiWhite: #CCCCCC;
+  --ansiBrightBlack: #767676;
+  --ansiBrightRed: #E74856;
+  --ansiBrightGreen: #16C60C;
+  --ansiBrightYellow: #F9F1A5;
+  --ansiBrightBlue: #3B78FF;
+  --ansiBrightMagenta: #B4009E;
+  --ansiBrightCyan: #61D6D6;
+  --ansiBrightWhite: #F2F2F2;
+  --ansiBgBlack: #0C0C0C;
+  --ansiBgRed: #C50F1F;
+  --ansiBgGreen: #13A10E;
+  --ansiBgYellow: #C19C00;
+  --ansiBgBlue: #0037DA;
+  --ansiBgMagenta: #881798;
+  --ansiBgCyan: #3A96DD;
+  --ansiBgWhite: #CCCCCC;
+  --ansiBgBrightBlack: #767676;
+  --ansiBgBrightRed: #E74856;
+  --ansiBgBrightGreen: #16C60C;
+  --ansiBgBrightYellow: #F9F1A5;
+  --ansiBgBrightBlue: #3B78FF;
+  --ansiBgBrightMagenta: #B4009E;
+  --ansiBgBrightCyan: #61D6D6;
+  --ansiBgBrightWhite: #F2F2F2;
 }
 
-.app[data-theme="dark"] {
+.app[data-theme="dark"],
+:root[data-theme="dark"],
+html[data-theme="dark"],
+[data-theme="dark"] {
   background: var(--color-bg-dark);
   color: var(--color-text-dark);
+  --color-text-primary: #E2E8F0;
+
+  /* ===== 激进修复：在深色模式下覆盖所有 -light 变量 =====
+     这样所有使用 var(--color-card-light) / var(--color-text-light) 等
+     的组件自动获得深色值，无需逐个添加 [data-theme="dark"] 覆盖
+     注意：选择器提升到 :root / html / [data-theme] 是为了
+     覆盖 Portal 渲染到 document.body 的弹层（如下拉菜单） */
+  --color-bg-light: var(--color-bg-dark);
+  --color-card-light: var(--color-card-dark);
+  --color-text-light: var(--color-text-dark);
+  --color-border-light: var(--color-border-dark);
 }
 
 .main-content {
@@ -88,10 +198,6 @@ body {
   flex-direction: column;
   overflow: hidden;
   background: var(--color-bg-light);
-}
-
-.app[data-theme="dark"] .data-area {
-  background: var(--color-bg-dark);
 }
 
 button {
@@ -126,6 +232,30 @@ input, textarea {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-secondary);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* 原生 select/option 深色模式适配 */
+[data-theme="dark"] select option {
+  background: var(--color-card-dark);
+  color: var(--color-text-dark);
+}
+
+/* 中屏设备：平板（768px - 1023px） */
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --header-height: 52px;
+    --toolbar-height: 46px;
+    --statusbar-height: 32px;
+    --sidebar-width: 240px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -168,5 +298,39 @@ input, textarea {
   :root {
     --header-height: 48px;
     --toolbar-height: 44px;
+  }
+
+  /* 窄屏滚动条更细 */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border-radius: 2px;
+  }
+}
+
+/* ============================================
+   全局窄屏安全区与最小触摸目标
+   ============================================ */
+@media (max-width: 640px) {
+  /* 所有交互元素最小 44dp 触摸目标 */
+  button, a[role="button"], [role="button"], [role="tab"], [role="menuitem"] {
+    min-height: var(--touch-target-min, 44px);
+    min-width: var(--touch-target-min, 44px);
+  }
+}
+
+/* 确保设置面板导航栏在极端窄屏下可水平滚动 */
+@media (max-width: 480px) {
+  nav[class*="settingsNav"],
+  div[class*="settingsNav"] {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  nav[class*="settingsNav"]::-webkit-scrollbar {
+    display: none;
   }
 }

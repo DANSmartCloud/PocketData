@@ -1,0 +1,327 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--color-card-light);
+  font-size: 12px;
+}
+
+[data-theme="dark"] .container {
+  background: var(--color-card-dark);
+}
+
+.findRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+[data-theme="dark"] .findRow {
+  border-bottom-color: var(--color-border-dark);
+}
+
+.inputWrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 6px;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.input {
+  flex: 1;
+  width: 100%;
+  height: 24px;
+  padding: 0 6px 0 24px;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+}
+
+[data-theme="dark"] .input {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-border-dark);
+}
+
+.filterInput {
+  flex: 1;
+  height: 22px;
+  padding: 0 6px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--color-text-primary);
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: 3px;
+  outline: none;
+}
+
+[data-theme="dark"] .filterInput {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-border-dark);
+}
+
+.matchCount {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  min-width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.iconBtn:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: var(--color-border-light);
+}
+
+[data-theme="dark"] .iconBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.iconBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.iconBtnActive {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.expandIconOpen {
+  transform: rotate(90deg);
+}
+
+.expandPanel {
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg-light);
+}
+
+[data-theme="dark"] .expandPanel {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom-color: var(--color-border-dark);
+}
+
+.optionsRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 8px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+[data-theme="dark"] .optionsRow {
+  border-top-color: var(--color-border-dark);
+}
+
+.optLabel {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  margin-right: 4px;
+}
+
+.optBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 7px;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border-light);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.optBtn:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: var(--color-border-light);
+}
+
+.optBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+[data-theme="dark"] .optBtn {
+  border-color: var(--color-border-dark);
+}
+
+.optBtnActive {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.filterBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 8px 6px 8px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+[data-theme="dark"] .filterBlock {
+  border-top-color: var(--color-border-dark);
+}
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.resultList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px;
+  min-height: 0;
+}
+
+.noMatch {
+  padding: 16px 8px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  font-style: italic;
+}
+
+.hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px 8px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.hintIcon {
+  opacity: 0.4;
+}
+
+.hint small {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.matchItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  padding: 4px 6px;
+  margin-bottom: 2px;
+  font-size: 11px;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.matchItem:hover {
+  background: var(--color-bg-light);
+  border-color: var(--color-border-light);
+}
+
+[data-theme="dark"] .matchItem:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-border-dark);
+}
+
+[data-theme="dark"] .matchItem {
+  color: var(--color-text-dark);
+}
+
+.matchItemActive {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 30%, transparent) !important;
+}
+
+.matchIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--color-bg-light);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .matchIcon {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.matchItemActive .matchIcon {
+  color: var(--color-primary);
+}
+
+.matchFile {
+  font-weight: 500;
+  flex-shrink: 0;
+  font-size: 10px;
+}
+
+.matchContext {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.matchItemActive .matchContext {
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .matchItemActive .matchContext {
+  color: var(--color-text-dark);
+}
